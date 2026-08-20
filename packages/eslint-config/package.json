@@ -1,0 +1,18 @@
+{
+  "name": "@neo-hoot/eslint-config",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "files": [
+    "*.js"
+  ],
+  "dependencies": {
+    "@eslint/eslintrc": "^3.3.6",
+    "@eslint/js": "^9.39.5",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.3.1",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.11.0",
+    "typescript-eslint": "^8.67.0"
+  }
+}
