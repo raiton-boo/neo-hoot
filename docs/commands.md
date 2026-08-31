@@ -60,4 +60,17 @@ cd apps/api
 
 ## Drizzle CLI（`packages/db`）
 
-`packages/db`のスキーマ実装後、マイグレーション生成・適用等のコマンドをここに追記する（現時点では未実装）。
+コマンドは`packages/db`ディレクトリの中で実行する（`drizzle.config.ts`を参照するため）。マイグレーションの生成・適用には、DBへの接続情報として`.env`（`POSTGRES_*`）を使う。
+
+```bash
+cd packages/db
+```
+
+| コマンド           | 内容                                                                                                         |
+| :----------------- | :----------------------------------------------------------------------------------------------------------- |
+| `pnpm db:generate` | スキーマ定義(`src/schema/*.ts`)の差分から、マイグレーションSQLを生成する（`drizzle/`配下）。DBへの接続は不要 |
+| `pnpm db:migrate`  | 生成済みのマイグレーションを、実際に起動中のPostgreSQLへ適用する                                             |
+| `pnpm db:studio`   | ブラウザでDBの中身を確認・編集できるGUI（Drizzle Studio）を起動する                                          |
+| `pnpm db:seed`     | 開発用のサンプルデータを流し込む（既存データは一度全部削除してから入れ直す）                                 |
+
+スキーマを変更した時の基本の流れは「`db:generate` → `db:migrate` → （必要なら`db:seed`）」の順。
