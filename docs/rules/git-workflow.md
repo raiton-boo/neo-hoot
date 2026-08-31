@@ -14,24 +14,26 @@ main
  │    └─ chore/turborepo-setup
  │    └─ ci/add-github-actions
  │
- ├─ api   （関心ごとブランチ・バックエンド）
+ ├─ integration/api   （関心ごとブランチ・バックエンド）
  │    └─ api/feat/result-aggregation
  │    └─ api/fix/socket-reconnect
  │
- └─ web   （関心ごとブランチ・フロントエンド）
+ └─ integration/web   （関心ごとブランチ・フロントエンド）
       └─ web/feat/quiz-room-creation
       └─ web/fix/login-validation
 ```
 
 > Gitはブランチの「親ブランチ」情報を名前として保持しないため、`feat/xxx`だけでは`git branch -a`で見たときにapi由来かweb由来か判別できない。関心ごとをブランチ名自体に埋め込むことで一覧性を確保する。
 
+> **関心ごとブランチを`api`/`web`という名前にしてはいけない。** Gitはブランチ名をディレクトリ構造として扱うため、`api`というブランチと`api/feat/xxx`というブランチは共存できない（`refs/heads/api`が既にファイルとして存在する状態で、`refs/heads/api/feat/xxx`というディレクトリを作ろうとしてエラーになる）。機能ブランチの接頭辞（`api/`, `web/`）と衝突しないよう、関心ごとブランチには`integration/`を付ける。
+
 - **`main`**: 常にデプロイ可能な状態を保つ。直接の`push`は厳禁。
   - 【例外】プロジェクトの初期セットアップ時（最初のコミット、フレームワークの初期生成など）は直接pushしてよい。
-- **関心ごとブランチ（`api` / `web`）**: それぞれNestJSバックエンド、Next.jsフロントエンドの統合ブランチ。
+- **関心ごとブランチ（`integration/api` / `integration/web`）**: それぞれNestJSバックエンド、Next.jsフロントエンドの統合ブランチ。
   - `dev`ブランチは使わず、この2ブランチが実質的な統合ブランチの役割を担う。
   - `packages/`配下（db, types, socket, queueなど）の変更は、主に利用する側の関心ごとブランチに含める。
 - **リポジトリ全体に関わる変更**（Turborepo設定、Docker、CI/CD、ルートのREADMEなど、api/webどちらにも属さないもの）は、関心ごとブランチを経由せず`main`から直接ブランチを切ってPRを出す。
-- **接頭辞に`release/`等は付けない**: シンプルに`api`, `web`とする。
+- **接頭辞に`release/`等は付けない**: シンプルに`integration/api`, `integration/web`とする。
 
 ### 機能ブランチの命名規則
 
@@ -160,7 +162,7 @@ main
 
 ### マージフロー
 
-1. 機能ブランチ（`feat/xxx`など） → 関心ごとブランチ（`api`/`web`）へPR
+1. 機能ブランチ（`feat/xxx`など） → 関心ごとブランチ（`integration/api`/`integration/web`）へPR
 2. 関心ごとブランチ → `main`へPR（一定の作業がまとまった単位で統合）
 3. リポジトリ全体に関わる変更は、`main`から直接切ったブランチ→`main`へPR
 
