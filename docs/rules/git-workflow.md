@@ -71,7 +71,9 @@ main
   - 例: `[api] クイズ結果集計エンドポイントの実装`, `[web] クイズルーム作成画面のUI実装`, `[repo] Turborepoの初期セットアップ`
 - **1 Issue ＝ 1タスク**。作業が多岐にわたる場合はタスクを分割して別Issueにする。
 
-### Issueテンプレート（`.github/ISSUE_TEMPLATE/` に設置予定）
+### Issue本文テンプレート
+
+`.github/ISSUE_TEMPLATE/`は設置せず、このドキュメントに書いた内容をそのまま手動でコピーして使う。
 
 ```markdown
 ## 概要・目的
@@ -155,7 +157,9 @@ main
 
 機能ブランチ（`api/feat/xxx`, `web/feat/xxx`, `chore/xxx`など）から、直接`main`へPRを出す。
 
-### PRテンプレート（`.github/pull_request_template.md` に設置予定）
+### PR本文テンプレート
+
+`.github/pull_request_template.md`は設置せず、このドキュメントに書いた内容をそのまま手動でコピーして使う。ブランチ名・コミット一覧・変更ファイルはGitHubのPR画面（ブランチ表示・Commitsタブ・Files changedタブ）で自動的に見えるため書かない。
 
 ```markdown
 ## 概要
