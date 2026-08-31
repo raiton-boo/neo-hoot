@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>neo-hoot | ルーム参加</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Paytone+One&family=Inter:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../shared.css" />
+    <style>
+      .join-screen {
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="mobile-screen join-screen">
+      <h1>neo-hoot</h1>
+      <p class="lede">ルームコードとニックネームを入力して参加しよう</p>
+
+      <div class="card" style="width: 100%; text-align: left">
+        <button class="qr-scan-btn">
+          <span class="qr-viewfinder">
+            <span class="corner tl"></span>
+            <span class="corner tr"></span>
+            <span class="corner bl"></span>
+            <span class="corner br"></span>
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <rect x="3" y="3" width="7" height="7" />
+              <rect x="14" y="3" width="7" height="7" />
+              <rect x="3" y="14" width="7" height="7" />
+              <rect x="14" y="14" width="3" height="3" />
+              <rect x="18" y="18" width="3" height="3" />
+              <rect x="14" y="18" width="3" height="3" />
+              <rect x="18" y="14" width="3" height="3" />
+            </svg>
+          </span>
+          QRコードをスキャン
+        </button>
+
+        <div class="divider">または</div>
+
+        <label class="lede" style="display: block; margin-bottom: 0.25rem"
+          >ルームコード</label
+        >
+        <input
+          class="input"
+          type="text"
+          placeholder="例: 8823"
+          style="
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            text-align: center;
+            letter-spacing: 0.1em;
+          "
+        />
+
+        <label class="lede" style="display: block; margin-bottom: 0.25rem"
+          >ニックネーム</label
+        >
+        <input
+          class="input"
+          type="text"
+          placeholder="例: たろう"
+          style="margin-bottom: 1.5rem"
+        />
+
+        <button class="btn btn-block">参加する</button>
+      </div>
+    </div>
+  </body>
+</html>

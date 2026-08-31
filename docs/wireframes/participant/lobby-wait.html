@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>neo-hoot | 待機中</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Paytone+One&family=Inter:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../shared.css" />
+    <style>
+      .lobby-screen {
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+      }
+      .pulse-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--color-success);
+        display: inline-block;
+        margin-right: 0.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="mobile-screen lobby-screen">
+      <span class="badge">ROOM: 8823</span>
+      <h1 style="margin-top: 1rem">たろう さん</h1>
+      <p class="lede">
+        <span class="pulse-dot"></span>ホストが開始するまでお待ちください
+      </p>
+
+      <div class="card">
+        <p style="margin: 0">参加者: <strong>12人</strong>が待機中</p>
+      </div>
+    </div>
+  </body>
+</html>
