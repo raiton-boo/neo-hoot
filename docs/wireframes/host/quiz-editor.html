@@ -29,10 +29,42 @@
       .question-list-item .qbody {
         flex: 1;
       }
+      .edit-icon-btn {
+        width: 2.5rem;
+        height: 2.5rem;
+        border: var(--border-width) solid var(--color-ink);
+        border-radius: var(--radius);
+        background: var(--color-primary);
+        box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--color-ink);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        flex-shrink: 0;
+        transition:
+          transform 0.1s,
+          box-shadow 0.1s;
+      }
+      .edit-icon-btn:active {
+        transform: translate(2px, 2px);
+        box-shadow: 2px 2px 0 var(--color-ink);
+      }
+      .edit-icon-btn svg {
+        width: 16px;
+        height: 16px;
+      }
       .question-edit-card {
+        margin-bottom: 1rem;
         box-shadow: var(--shadow-offset) var(--shadow-offset) 0
           var(--color-accent);
         border-color: var(--color-accent);
+      }
+      .question-edit-card .edit-label {
+        display: inline-block;
+        margin-bottom: 1rem;
+        font-family: 'Paytone One', system-ui, sans-serif;
+        font-size: 0.85rem;
+        color: var(--color-accent);
       }
       .choice-row {
         display: flex;
@@ -66,6 +98,11 @@
       .type-tabs .btn {
         padding: 0.5rem 1rem;
         font-size: 0.85rem;
+      }
+      /* 「選ばれていないタイプ」を表す中立色。ピンクは回答画面の選択肢Aの色でもあるため、意味の衝突を避けて枠線のみの見た目にする */
+      .type-tabs .btn.inactive {
+        background: var(--color-surface);
+        color: var(--color-ink);
       }
     </style>
   </head>
@@ -101,31 +138,35 @@
       </div>
 
       <h2>設問一覧（全4問）</h2>
+      <p class="lede" style="margin-top: -0.5rem">
+        設問をクリックすると、その場で編集できます
+      </p>
 
       <div class="question-list-item">
         <span class="qnum">Q1</span>
         <span class="qbody">日本で一番人口が多い都道府県は？</span>
         <span class="badge">4択</span>
-      </div>
-      <div class="question-list-item">
-        <span class="qnum">Q3</span>
-        <span class="qbody">北海道の道庁所在地は札幌市である</span>
-        <span class="badge">○×</span>
-      </div>
-      <div class="question-list-item">
-        <span class="qnum">Q4</span>
-        <span class="qbody">一番好きな都道府県は？</span>
-        <span class="badge" style="background: var(--color-accent); color: #fff"
-          >アンケート</span
-        >
+        <button class="edit-icon-btn" aria-label="編集する">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M12 20h9" />
+            <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
+          </svg>
+        </button>
       </div>
 
-      <h2>設問を編集中: Q2</h2>
+      <!-- Q2: クリックされて展開されている状態 -->
       <div class="card question-edit-card">
+        <span class="edit-label">Q2 を編集中</span>
+
         <div class="type-tabs">
           <button class="btn">4択</button>
-          <button class="btn btn-secondary">○×</button>
-          <button class="btn btn-secondary">アンケート</button>
+          <button class="btn inactive">○×</button>
+          <button class="btn inactive">アンケート</button>
         </div>
 
         <label class="lede" style="display: block; margin-bottom: 0.25rem"
@@ -164,6 +205,39 @@
           >制限時間（秒）</label
         >
         <input class="input" type="number" value="20" style="width: 100px" />
+      </div>
+
+      <div class="question-list-item">
+        <span class="qnum">Q3</span>
+        <span class="qbody">北海道の道庁所在地は札幌市である</span>
+        <span class="badge">○×</span>
+        <button class="edit-icon-btn" aria-label="編集する">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M12 20h9" />
+            <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
+          </svg>
+        </button>
+      </div>
+      <div class="question-list-item">
+        <span class="qnum">Q4</span>
+        <span class="qbody">一番好きな都道府県は？</span>
+        <span class="badge">アンケート</span>
+        <button class="edit-icon-btn" aria-label="編集する">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M12 20h9" />
+            <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
+          </svg>
+        </button>
       </div>
 
       <button class="btn btn-block" style="margin-top: 1.5rem">
