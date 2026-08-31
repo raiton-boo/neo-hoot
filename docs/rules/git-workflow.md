@@ -4,40 +4,31 @@
 あくまで参考としつつ、neo-hoot固有の事情（pnpm + Turborepoによるモノレポ構成、api/webの関心ごと分離、ソロでの学習用ポートフォリオ開発）に
 合わせて独自にアレンジしたものです。
 
-## 1. ブランチ戦略（3層構造）
+## 1. ブランチ戦略（2層構造）
 
-`main`の下に「関心ごとブランチ」を置き、その下で機能ブランチを作業する3層構造を採用する。
+`main`から直接、機能ブランチを切って作業する2層構造を採用する。ソロでの学習用ポートフォリオ開発であり、複数人の作業をまとめてから`main`に反映する必要が無いため、間に統合ブランチは置かない（常にSquash and Mergeなので、直接`main`へPRしても履歴はきれいなまま保たれる）。
 
 ```
 main
- ├─ （リポジトリ全体に関わる変更は直接ここから）
- │    └─ chore/turborepo-setup
- │    └─ ci/add-github-actions
- │
- ├─ integration/api   （関心ごとブランチ・バックエンド）
- │    └─ api/feat/result-aggregation
- │    └─ api/fix/socket-reconnect
- │
- └─ integration/web   （関心ごとブランチ・フロントエンド）
-      └─ web/feat/quiz-room-creation
-      └─ web/fix/login-validation
+ ├─ api/feat/result-aggregation   （バックエンドの機能ブランチ）
+ ├─ api/fix/socket-reconnect
+ ├─ web/feat/quiz-room-creation   （フロントエンドの機能ブランチ）
+ ├─ web/fix/login-validation
+ ├─ chore/turborepo-setup         （リポジトリ全体に関わる機能ブランチ）
+ └─ ci/add-github-actions
 ```
 
-> Gitはブランチの「親ブランチ」情報を名前として保持しないため、`feat/xxx`だけでは`git branch -a`で見たときにapi由来かweb由来か判別できない。関心ごとをブランチ名自体に埋め込むことで一覧性を確保する。
+> Gitはブランチの「派生元」情報を名前として保持しないため、`feat/xxx`だけでは`git branch -a`で見たときにapi由来かweb由来か判別できない。関心ごとをブランチ名自体に埋め込むことで一覧性を確保する。
 
-> **関心ごとブランチを`api`/`web`という名前にしてはいけない。** Gitはブランチ名をディレクトリ構造として扱うため、`api`というブランチと`api/feat/xxx`というブランチは共存できない（`refs/heads/api`が既にファイルとして存在する状態で、`refs/heads/api/feat/xxx`というディレクトリを作ろうとしてエラーになる）。機能ブランチの接頭辞（`api/`, `web/`）と衝突しないよう、関心ごとブランチには`integration/`を付ける。
+> **関心ごとを表すために`api`や`web`という名前のブランチ単体を作ってはいけない。** Gitはブランチ名の`/`をディレクトリ構造として扱うため、`api`というブランチと`api/feat/xxx`というブランチは共存できない（`refs/heads/api`が既にファイルとして存在する状態で、`refs/heads/api/feat/xxx`というディレクトリを作ろうとしてエラーになる）。関心ごとは、あくまで機能ブランチ名の先頭に付ける接頭辞（`api/`, `web/`）としてのみ使う。
 
 - **`main`**: 常にデプロイ可能な状態を保つ。直接の`push`は厳禁。
   - 【例外】プロジェクトの初期セットアップ時（最初のコミット、フレームワークの初期生成など）は直接pushしてよい。
-- **関心ごとブランチ（`integration/api` / `integration/web`）**: それぞれNestJSバックエンド、Next.jsフロントエンドの統合ブランチ。
-  - `dev`ブランチは使わず、この2ブランチが実質的な統合ブランチの役割を担う。
-  - `packages/`配下（db, types, socket, queueなど）の変更は、主に利用する側の関心ごとブランチに含める。
-- **リポジトリ全体に関わる変更**（Turborepo設定、Docker、CI/CD、ルートのREADMEなど、api/webどちらにも属さないもの）は、関心ごとブランチを経由せず`main`から直接ブランチを切ってPRを出す。
-- **接頭辞に`release/`等は付けない**: シンプルに`integration/api`, `integration/web`とする。
+- **`packages/`配下**（db, types, socket, queueなど）の変更は、主に利用する側の接頭辞（`api/`または`web/`）を付けた機能ブランチに含める。
 
 ### 機能ブランチの命名規則
 
-- **関心ごとブランチ配下（api/web）の機能ブランチ**:
+- **`api`または`web`に関わる機能ブランチ**:
 
   ```
   関心ごと/接頭辞/短い英単語（ケバブケース）　※Issue番号は含めない
@@ -46,7 +37,7 @@ main
   - 良い例: `api/feat/result-aggregation`, `web/fix/login-validation`
   - 悪い例: `feat/add-new-endpoint-for-aggregating-quiz-results`（関心ごとが無い、長すぎる）
 
-- **リポジトリ全体に関わる機能ブランチ**（`main`から直接切る場合）:
+- **リポジトリ全体に関わる機能ブランチ**（`api`/`web`どちらにも属さないもの）:
 
   ```
   接頭辞/短い英単語（ケバブケース）
@@ -162,9 +153,7 @@ main
 
 ### マージフロー
 
-1. 機能ブランチ（`feat/xxx`など） → 関心ごとブランチ（`integration/api`/`integration/web`）へPR
-2. 関心ごとブランチ → `main`へPR（一定の作業がまとまった単位で統合）
-3. リポジトリ全体に関わる変更は、`main`から直接切ったブランチ→`main`へPR
+機能ブランチ（`api/feat/xxx`, `web/feat/xxx`, `chore/xxx`など）から、直接`main`へPRを出す。
 
 ### PRテンプレート（`.github/pull_request_template.md` に設置予定）
 
