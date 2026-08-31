@@ -1,71 +1,214 @@
 <!doctype html>
 <html lang="ja">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>neo-hoot | 最終結果(ホスト)</title>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link
-  href="https://fonts.googleapis.com/css2?family=Paytone+One&family=Inter:wght@400;600&display=swap"
-  rel="stylesheet"
-/>
-<link rel="stylesheet" href="../shared.css" />
-<style>
-  .podium {
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    gap: 1.5rem;
-    max-width: 700px;
-    margin: 2rem auto;
-  }
-  .podium-block {
-    text-align: center;
-  }
-  .podium-name {
-    font-weight: 600;
-    margin-bottom: 0.5rem;
-  }
-  .podium-bar {
-    border: var(--border-width) solid var(--color-ink);
-    border-radius: var(--radius) var(--radius) 0 0;
-    box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--color-ink);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: 'Paytone One', system-ui, sans-serif;
-    font-size: 2rem;
-    color: #fff;
-  }
-  .podium-block.first .podium-bar { height: 200px; width: 160px; background: var(--color-primary); color: #0a0a0a; }
-  .podium-block.second .podium-bar { height: 140px; width: 160px; background: var(--color-accent); }
-  .podium-block.third .podium-bar { height: 100px; width: 160px; background: var(--color-secondary); }
-</style>
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>neo-hoot | 最終結果(ホスト)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Paytone+One&family=Inter:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../shared.css" />
+    <style>
+      /* この画面専用: 金銀銅はUI全体の配色ではなく、順位を表す慣習色としてここだけで使う */
+      :root {
+        --color-gold: var(--color-primary);
+        --color-silver: #c7ccd1;
+        --color-bronze: #cd7f32;
+      }
 
-<h1 style="text-align: center;">最終結果発表！</h1>
+      .podium {
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        gap: 1.5rem;
+        max-width: 700px;
+        margin: 2.5rem auto 0;
+      }
 
-<div class="podium">
-  <div class="podium-block second">
-    <p class="podium-name">たろう</p>
-    <div class="podium-bar">2</div>
-  </div>
-  <div class="podium-block first">
-    <p class="podium-name">はなこ</p>
-    <div class="podium-bar">1</div>
-  </div>
-  <div class="podium-block third">
-    <p class="podium-name">じろう</p>
-    <div class="podium-bar">3</div>
-  </div>
-</div>
+      .podium-block {
+        text-align: center;
+      }
 
-<div style="text-align: center; margin-top: 2.5rem;">
-  <button class="btn btn-accent" style="font-size: 1.1rem; padding: 1rem 2rem; margin-right: 1rem;">もう一度開催する</button>
-  <button class="btn" style="font-size: 1.1rem; padding: 1rem 2rem;">クイズ一覧に戻る</button>
-</div>
+      .crown {
+        font-size: 2rem;
+        display: block;
+        margin-bottom: -0.5rem;
+      }
 
-</body>
+      /* 順位を示すメダルバッジ */
+      .medal {
+        width: 56px;
+        height: 56px;
+        margin: 0 auto 0.5rem;
+        border: var(--border-width) solid var(--color-ink);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Paytone One', system-ui, sans-serif;
+        font-size: 1.5rem;
+        box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--color-ink);
+      }
+      .podium-block.first .medal {
+        background: var(--color-gold);
+        color: #0a0a0a;
+        width: 64px;
+        height: 64px;
+        font-size: 1.75rem;
+      }
+      .podium-block.second .medal {
+        background: var(--color-silver);
+        color: #0a0a0a;
+      }
+      .podium-block.third .medal {
+        background: var(--color-bronze);
+        color: #0a0a0a;
+      }
+
+      .podium-name {
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+      }
+
+      .podium-score {
+        font-size: 0.85rem;
+        opacity: 0.7;
+        margin-bottom: 0.5rem;
+      }
+
+      .podium-bar {
+        border: var(--border-width) solid var(--color-ink);
+        border-radius: var(--radius) var(--radius) 0 0;
+        box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--color-ink);
+        width: 160px;
+      }
+      .podium-block.first .podium-bar {
+        height: 180px;
+        background: var(--color-gold);
+      }
+      .podium-block.second .podium-bar {
+        height: 130px;
+        background: var(--color-silver);
+      }
+      .podium-block.third .podium-bar {
+        height: 90px;
+        background: var(--color-bronze);
+      }
+
+      .ranking-list {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+        max-width: 700px;
+        margin: 0 auto;
+      }
+    </style>
+  </head>
+  <body>
+    <h1 style="text-align: center">最終結果発表！</h1>
+
+    <div class="podium">
+      <div class="podium-block second">
+        <div class="medal">2</div>
+        <p class="podium-name">たろう</p>
+        <p class="podium-score">1850pt</p>
+        <div class="podium-bar"></div>
+      </div>
+      <div class="podium-block first">
+        <span class="crown">👑</span>
+        <div class="medal">1</div>
+        <p class="podium-name">はなこ</p>
+        <p class="podium-score">2340pt</p>
+        <div class="podium-bar"></div>
+      </div>
+      <div class="podium-block third">
+        <div class="medal">3</div>
+        <p class="podium-name">じろう</p>
+        <p class="podium-score">1620pt</p>
+        <div class="podium-bar"></div>
+      </div>
+    </div>
+
+    <h2 style="text-align: center; max-width: 700px; margin: 3rem auto 1rem">
+      全体の順位
+    </h2>
+    <div class="ranking-list">
+      <div class="list-item">
+        <span class="rank">4</span
+        ><span class="name" title="さくら">さくら</span
+        ><span class="badge">1480pt</span>
+      </div>
+      <div class="list-item">
+        <span class="rank">5</span
+        ><span class="name" title="けんた">けんた</span
+        ><span class="badge">1390pt</span>
+      </div>
+      <div class="list-item">
+        <span class="rank">6</span><span class="name" title="みお">みお</span
+        ><span class="badge">1210pt</span>
+      </div>
+      <div class="list-item">
+        <span class="rank">7</span
+        ><span class="name" title="ゆうた">ゆうた</span
+        ><span class="badge">1080pt</span>
+      </div>
+      <div class="list-item">
+        <span class="rank">8</span
+        ><span class="name" title="あやか">あやか</span
+        ><span class="badge">950pt</span>
+      </div>
+      <div class="list-item">
+        <span class="rank">9</span
+        ><span class="name" title="けんたろうまさひこ">けんたろうまさひこ</span
+        ><span class="badge">820pt</span>
+      </div>
+      <div class="list-item">
+        <span class="rank">10</span
+        ><span class="name" title="まなみ">まなみ</span
+        ><span class="badge">700pt</span>
+      </div>
+    </div>
+    <p
+      class="lede"
+      style="
+        text-align: center;
+        max-width: 700px;
+        margin: 0.75rem auto 0;
+        font-size: 0.85rem;
+      "
+    >
+      11位以下は表示されません
+    </p>
+
+    <div style="text-align: center; margin-top: 2.5rem">
+      <button
+        class="btn"
+        style="
+          font-size: 1.3rem;
+          padding: 1.1rem 2.5rem;
+          display: block;
+          margin: 0 auto 1rem;
+        "
+      >
+        もう一度開催する
+      </button>
+      <button
+        style="
+          background: none;
+          border: none;
+          text-decoration: underline;
+          font-family: 'Inter', system-ui, sans-serif;
+          font-size: 0.95rem;
+          color: var(--color-ink);
+          opacity: 0.7;
+          cursor: pointer;
+        "
+      >
+        クイズ一覧に戻る
+      </button>
+    </div>
+  </body>
 </html>

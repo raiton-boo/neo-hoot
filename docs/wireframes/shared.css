@@ -232,6 +232,10 @@ h2 {
 .list-item .name {
   flex: 1;
   font-weight: 600;
+  min-width: 0; /* flexアイテムでtext-overflowを効かせるために必要 */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* タイマー表示 */
