@@ -259,7 +259,10 @@ h2 {
 .choice-btn {
   font-family: 'Paytone One', system-ui, sans-serif;
   font-size: 1.1rem;
-  padding: 1.5rem 1rem;
+  aspect-ratio: 1; /* 縦に間延びさせず正方形を保つ */
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border: var(--border-width) solid var(--color-ink);
   border-radius: var(--radius);
   color: #fff;
@@ -331,10 +334,26 @@ h2 {
   border-style: solid;
 }
 
-.qr-viewfinder .corner.tl { top: 0; left: 0; border-width: 3px 0 0 3px; }
-.qr-viewfinder .corner.tr { top: 0; right: 0; border-width: 3px 3px 0 0; }
-.qr-viewfinder .corner.bl { bottom: 0; left: 0; border-width: 0 0 3px 3px; }
-.qr-viewfinder .corner.br { bottom: 0; right: 0; border-width: 0 3px 3px 0; }
+.qr-viewfinder .corner.tl {
+  top: 0;
+  left: 0;
+  border-width: 3px 0 0 3px;
+}
+.qr-viewfinder .corner.tr {
+  top: 0;
+  right: 0;
+  border-width: 3px 3px 0 0;
+}
+.qr-viewfinder .corner.bl {
+  bottom: 0;
+  left: 0;
+  border-width: 0 0 3px 3px;
+}
+.qr-viewfinder .corner.br {
+  bottom: 0;
+  right: 0;
+  border-width: 0 3px 3px 0;
+}
 
 /* 「または」区切り線 */
 .divider {
@@ -353,4 +372,174 @@ h2 {
   flex: 1;
   height: 2px;
   background: currentColor;
+}
+
+/* 参加/ホストの切り替えタブ。今いる方をハイライトする */
+.mode-switch {
+  display: flex;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 360px;
+  margin: 0 0 1.5rem;
+}
+
+.mode-switch a {
+  flex: 1;
+  text-align: center;
+  padding: 0.6rem 1rem;
+  border: var(--border-width) solid var(--color-ink);
+  border-radius: var(--radius);
+  text-decoration: none;
+  font-family: 'Paytone One', system-ui, sans-serif;
+  font-size: 0.85rem;
+  color: var(--color-ink);
+  background: var(--color-surface);
+  transition: transform 0.1s;
+}
+
+.mode-switch a.active {
+  background: var(--color-primary);
+  box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--color-ink);
+}
+
+/* ページ表示時のふわっと登場するアニメーション。本実装ではFramer Motionのページ遷移に置き換える想定 */
+@keyframes enter-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.enter-animate {
+  animation: enter-fade-up 0.4s ease-out;
+}
+
+/* ログイン後の全画面で使う共通ヘッダー。login/join画面の巨大ロゴ(h1)とは役割を分ける */
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 1rem;
+  margin-bottom: 2rem;
+  border-bottom: var(--border-width) solid var(--color-ink);
+}
+
+.app-header .logo {
+  font-family: 'Paytone One', system-ui, sans-serif;
+  font-size: 1.25rem;
+  text-decoration: none;
+  color: var(--color-ink);
+}
+
+/* アバター+名前+シェブロンをまとめてクリック可能な1つのメニュートリガーにする */
+.app-header .user-menu {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: none;
+  border: none;
+  padding: 0.25rem;
+  border-radius: var(--radius);
+  cursor: pointer;
+  color: var(--color-ink);
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.app-header .user-menu:hover {
+  background: var(--color-surface);
+}
+
+.app-header .avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid var(--color-ink);
+  background: var(--color-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Paytone One', system-ui, sans-serif;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.app-header .user-menu svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* ○×(2択)用の大きな正方形ボタン */
+.tf-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.tf-btn {
+  font-family: 'Paytone One', system-ui, sans-serif;
+  font-size: 2.5rem;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: var(--border-width) solid var(--color-ink);
+  border-radius: var(--radius);
+  color: #fff;
+  box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--color-ink);
+  cursor: pointer;
+}
+
+.tf-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--color-ink);
+}
+
+.tf-btn.true {
+  background: var(--color-success);
+}
+.tf-btn.false {
+  background: var(--color-danger);
+}
+
+/* スマートフォン幅では正方形2つの横並びだと小さく、余白も気になるため縦積みの横長ボタンにする */
+@media (max-width: 480px) {
+  .tf-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tf-btn {
+    aspect-ratio: auto;
+    height: 140px;
+  }
+}
+
+/* アンケート用の縦積みリスト。正解/不正解を連想させない中立カラーにする */
+.survey-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.survey-btn {
+  font-family: 'Paytone One', system-ui, sans-serif;
+  font-size: 1rem;
+  padding: 1.25rem 1.5rem;
+  text-align: left;
+  border: var(--border-width) solid var(--color-ink);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--color-ink);
+  cursor: pointer;
+}
+
+.survey-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--color-ink);
 }
