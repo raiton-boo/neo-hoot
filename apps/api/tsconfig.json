@@ -1,3 +1,7 @@
 {
-  "extends": "@neo-hoot/typescript-config/nestjs.json"
+  "extends": "@neo-hoot/typescript-config/nestjs.json",
+  "compilerOptions": {
+    "outDir": "./dist"
+  }
 }
+

@@ -28,6 +28,7 @@ services:
       - '${API_PORT:-3001}:3001'
     environment:
       PORT: 3001
+      POSTGRES_HOST: postgres
     volumes:
       - .:/app
       - /app/node_modules
