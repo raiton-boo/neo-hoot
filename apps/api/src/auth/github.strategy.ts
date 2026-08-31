@@ -1,8 +1,10 @@
 import { db as DbInstance, user } from '@neo-hoot/db';
 import { Inject, Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
+
 import { and, eq } from 'drizzle-orm';
 import { Profile, Strategy } from 'passport-github2';
+
 import { DATABASE_CONNECTION } from '../database/database.module.js';
 
 function requireEnv(key: string): string {
