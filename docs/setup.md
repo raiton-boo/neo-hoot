@@ -69,6 +69,29 @@ pnpm --filter web dev
 
 スマートフォンの実機で参加者側画面を確認する場合は、`localhost`ではなく`127.0.0.1:3000`、またはPCのLAN内IPアドレスでアクセスする（同一Wi-Fi内であれば）。
 
+## ngrokで外部公開する（同一LAN外からの参加テスト用）
+
+同じWi-Fi内にいない相手にルームへ参加してもらう場合や、実機のQRコード読み取りを別ネットワークから試したい場合は、[ngrok](https://ngrok.com/)でローカルの開発サーバーを外部公開できる。
+
+### 前提
+
+- `ngrok`コマンドがインストール済みであること（例: `brew install ngrok`）
+- ngrokアカウントでの認証済みであること（初回のみ）
+
+```bash
+ngrok config add-authtoken <ngrokダッシュボードで発行したトークン>
+```
+
+### 起動
+
+```bash
+pnpm run ngrok
+```
+
+`apps/web`（ポート3000）を外部公開する。あらかじめ`pnpm --filter web dev`でフロントエンドを起動しておくこと。起動後にターミナルへ表示される`https://xxxx.ngrok-free.app`のようなURLを、参加者側の共有先として使う。
+
+現状は`apps/web`のみを公開する想定で、`apps/api`（Socket.io）を含めた外部公開は未検証（TODO）。
+
 ## 終了・後片付け
 
 ```bash

@@ -4,15 +4,16 @@
 
 ## pnpm / モノレポ操作
 
-| コマンド                                                | 内容                                                                    |
-| :------------------------------------------------------ | :---------------------------------------------------------------------- |
-| `pnpm install`                                          | モノレポ全体の依存関係をインストール                                    |
-| `pnpm dev` / `build` / `lint` / `test`                  | ルートから実行すると、Turborepo経由で全ワークスペースに対して実行される |
-| `pnpm --filter web <script>`                            | `apps/web`だけを対象にスクリプトを実行（例: `pnpm --filter web dev`）   |
-| `pnpm --filter api <script>`                            | `apps/api`だけを対象にスクリプトを実行（例: `pnpm --filter api test`）  |
-| `pnpm add <パッケージ名> --filter web`                  | `apps/web`にだけ依存パッケージを追加                                    |
-| `pnpm add <パッケージ名> -w`                            | ルート（モノレポ全体で共有する開発ツール等）に依存パッケージを追加      |
-| `pnpm add <パッケージ名> --filter web -F @neo-hoot/xxx` | ワークスペース内の別パッケージ(`workspace:*`)への依存を追加             |
+| コマンド                                                | 内容                                                                     |
+| :------------------------------------------------------ | :----------------------------------------------------------------------- |
+| `pnpm install`                                          | モノレポ全体の依存関係をインストール                                     |
+| `pnpm dev` / `build` / `lint` / `test`                  | ルートから実行すると、Turborepo経由で全ワークスペースに対して実行される  |
+| `pnpm --filter web <script>`                            | `apps/web`だけを対象にスクリプトを実行（例: `pnpm --filter web dev`）    |
+| `pnpm --filter api <script>`                            | `apps/api`だけを対象にスクリプトを実行（例: `pnpm --filter api test`）   |
+| `pnpm add <パッケージ名> --filter web`                  | `apps/web`にだけ依存パッケージを追加                                     |
+| `pnpm add <パッケージ名> -w`                            | ルート（モノレポ全体で共有する開発ツール等）に依存パッケージを追加       |
+| `pnpm add <パッケージ名> --filter web -F @neo-hoot/xxx` | ワークスペース内の別パッケージ(`workspace:*`)への依存を追加              |
+| `pnpm run ngrok`                                        | `apps/web`(ポート3000)をngrokで外部公開する（詳細は`docs/setup.md`参照） |
 
 ## Docker
 
