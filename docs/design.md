@@ -103,5 +103,6 @@
 | 参加者・ルーム参加                  | [`wireframes/participant/join.md`](./wireframes/participant/join.md)     |
 | 参加者・回答画面(4択/○×/アンケート) | [`wireframes/participant/answer.md`](./wireframes/participant/answer.md) |
 | ホスト・最終結果                    | [`wireframes/host/final-result.md`](./wireframes/host/final-result.md)   |
+| ホスト・出題進行                    | [`wireframes/host/question.md`](./wireframes/host/question.md)           |
 
-まだドキュメント化していない画面（出題進行・設問結果、参加者側のロビー待機・個人結果・最終順位）は、指摘・変更が入った時点で同様に作成する。
+まだドキュメント化していない画面（設問結果、参加者側のロビー待機・個人結果・最終順位）は、指摘・変更が入った時点で同様に作成する。
