@@ -33,14 +33,17 @@ pnpm install
 cp .env.example .env
 ```
 
-| 変数名              | 用途                                                    |
-| :------------------ | :------------------------------------------------------ |
-| `POSTGRES_USER`     | PostgreSQLの接続ユーザー名                              |
-| `POSTGRES_PASSWORD` | PostgreSQLの接続パスワード                              |
-| `POSTGRES_DB`       | 作成するデータベース名                                  |
-| `POSTGRES_PORT`     | ホスト側に公開するPostgreSQLのポート（デフォルト5432）  |
-| `REDIS_PORT`        | ホスト側に公開するRedisのポート（デフォルト6379）       |
-| `API_PORT`          | ホスト側に公開するNestJS(api)のポート（デフォルト3001） |
+| 変数名              | 用途                                                                                                                                    |
+| :------------------ | :-------------------------------------------------------------------------------------------------------------------------------------- |
+| `POSTGRES_USER`     | PostgreSQLの接続ユーザー名                                                                                                              |
+| `POSTGRES_PASSWORD` | PostgreSQLの接続パスワード                                                                                                              |
+| `POSTGRES_DB`       | 作成するデータベース名                                                                                                                  |
+| `POSTGRES_PORT`     | ホスト側に公開するPostgreSQLのポート（デフォルト5432）                                                                                  |
+| `POSTGRES_HOST`     | PostgreSQLの接続先ホスト名（デフォルト`localhost`。Dockerコンテナ内(`apps/api`)からは`docker-compose.yml`側で`postgres`に上書きされる） |
+| `REDIS_PORT`        | ホスト側に公開するRedisのポート（デフォルト6379）                                                                                       |
+| `API_PORT`          | ホスト側に公開するNestJS(api)のポート（デフォルト3001）                                                                                 |
+| `JWT_SECRET`        | ログインセッションを表すJWTの署名鍵。推測されにくいランダムな文字列にする                                                               |
+| `WEB_URL`           | OAuthログイン成功後にリダイレクトするフロントエンドのURL（デフォルト`http://localhost:3000`）                                           |
 
 ローカル開発専用の値のため、`.env`の中身は空のパスワード等でも動作する（`coding-style.md`の機密情報の方針も参照）。
 
