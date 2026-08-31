@@ -64,6 +64,20 @@
         margin: 2rem 0;
       }
 
+      /* ホストの操作ボタン群 */
+      .host-controls {
+        display: flex;
+        justify-content: center;
+        gap: 0.75rem;
+        margin-top: 2rem;
+      }
+
+      .host-controls .btn {
+        font-size: 0.9rem;
+        padding: 0.6rem 1.25rem;
+      }
+
+      /* --- 出題中の表示 --- */
       .q-choice-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -103,9 +117,93 @@
         background: var(--color-success);
         animation-delay: 0.55s;
       }
+
+      /* --- 結果表示 --- */
+      .result-layout {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 2rem;
+        max-width: 1000px;
+        margin: 0 auto;
+      }
+
+      /* 正解を選択肢と同じ色で示し、バッジ単体で見ても「どの選択肢だったか」が伝わるようにする */
+      .correct-answer-badge {
+        display: inline-block;
+        margin-bottom: 1rem;
+        padding: 0.6rem 1.25rem;
+        border: var(--border-width) solid var(--color-ink);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--color-ink);
+        color: #fff;
+        font-family: 'Paytone One', system-ui, sans-serif;
+        font-size: 1.1rem;
+      }
+      .correct-answer-badge.a {
+        background: var(--color-secondary);
+      }
+      .correct-answer-badge.b {
+        background: var(--color-accent);
+      }
+      .correct-answer-badge.c {
+        background: #ffb800;
+      }
+      .correct-answer-badge.d {
+        background: var(--color-success);
+      }
+
+      .result-bar-row {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+      }
+      .result-bar-row .label {
+        width: 100px;
+        font-weight: 600;
+        flex-shrink: 0;
+      }
+      .result-bar-track {
+        flex: 1;
+        height: 2.5rem;
+        border: var(--border-width) solid var(--color-ink);
+        border-radius: var(--radius);
+        background: var(--color-surface);
+        overflow: hidden;
+      }
+      .result-bar-fill {
+        height: 100%;
+        transition: width 0.6s ease-out;
+      }
+
+      /* パーセント表示はバーの外側に固定表示する。バーが狭い(例:1%)場合でも隠れないようにするため */
+      .result-bar-value {
+        width: 100px;
+        flex-shrink: 0;
+        font-weight: 600;
+        text-align: right;
+      }
+
+      .result-bar-fill.correct {
+        background: var(--color-success);
+      }
+      .result-bar-fill.wrong {
+        background: var(--color-danger);
+      }
+
+      .next-countdown {
+        text-align: center;
+        margin-top: 1.5rem;
+        opacity: 0.7;
+      }
+
+      [data-state='asking'] .view-results,
+      [data-state='results'] .view-asking {
+        display: none;
+      }
     </style>
   </head>
-  <body>
+  <body data-state="asking" id="app">
     <div class="q-header">
       <div class="q-badge">
         第2問 / 全5問
@@ -121,26 +219,157 @@
 
     <p class="q-body">日本で一番面積が大きい都道府県は？</p>
 
-    <div class="q-choice-grid">
-      <div class="q-choice a">▲ 北海道</div>
-      <div class="q-choice b">◆ 岩手県</div>
-      <div class="q-choice c">● 福島県</div>
-      <div class="q-choice d">■ 長野県</div>
+    <!-- 出題中の表示 -->
+    <div class="view-asking">
+      <div class="q-choice-grid">
+        <div class="q-choice a">▲ 北海道</div>
+        <div class="q-choice b">◆ 岩手県</div>
+        <div class="q-choice c">● 福島県</div>
+        <div class="q-choice d">■ 長野県</div>
+      </div>
+
+      <div class="host-controls">
+        <button class="btn btn-accent pause-btn">⏸ 一時停止</button>
+        <button class="btn" id="skip-btn">結果を今すぐ見る ▶</button>
+        <button class="btn btn-danger" id="abort-btn">■ 中断する</button>
+      </div>
+    </div>
+
+    <!-- 結果表示(同じ画面の中の別の状態として切り替わる。別ページには遷移しない) -->
+    <div class="view-results">
+      <div class="result-layout">
+        <div>
+          <p class="correct-answer-badge a">正解: ▲ 北海道</p>
+
+          <div class="result-bar-row">
+            <span class="label">▲ 北海道</span>
+            <div class="result-bar-track">
+              <div class="result-bar-fill correct" style="width: 58%"></div>
+            </div>
+            <span class="result-bar-value">58% (7人)</span>
+          </div>
+          <div class="result-bar-row">
+            <span class="label">◆ 岩手県</span>
+            <div class="result-bar-track">
+              <div class="result-bar-fill wrong" style="width: 25%"></div>
+            </div>
+            <span class="result-bar-value">25% (3人)</span>
+          </div>
+          <div class="result-bar-row">
+            <span class="label">● 福島県</span>
+            <div class="result-bar-track">
+              <div class="result-bar-fill wrong" style="width: 8%"></div>
+            </div>
+            <span class="result-bar-value">8% (1人)</span>
+          </div>
+          <div class="result-bar-row">
+            <span class="label">■ 長野県</span>
+            <div class="result-bar-track">
+              <div class="result-bar-fill wrong" style="width: 1%"></div>
+            </div>
+            <span class="result-bar-value">1% (1人)</span>
+          </div>
+        </div>
+
+        <div>
+          <h2 style="margin-top: 0">現在の順位</h2>
+          <div class="row" style="flex-direction: column; align-items: stretch">
+            <div class="list-item">
+              <span class="rank">1</span><span class="name">はなこ</span
+              ><span class="badge">1850pt</span>
+            </div>
+            <div class="list-item">
+              <span class="rank">2</span><span class="name">たろう</span
+              ><span class="badge">1620pt</span>
+            </div>
+            <div class="list-item">
+              <span class="rank">3</span><span class="name">じろう</span
+              ><span class="badge">1400pt</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="host-controls">
+        <button class="btn btn-accent pause-btn">⏸ 一時停止</button>
+        <button class="btn" id="next-btn">次の問題へ ▶</button>
+        <button class="btn btn-danger" id="abort-btn-2">■ 中断する</button>
+      </div>
+      <p class="next-countdown" id="next-countdown">
+        あと5秒で自動的に次の問題へ進みます
+      </p>
     </div>
 
     <script>
-      // デモ用: タイマーをカウントダウンし、残り5秒以下で赤くする
-      let seconds = 8;
+      const app = document.getElementById('app');
       const timerEl = document.getElementById('timer');
-      const interval = setInterval(() => {
+      const nextCountdownEl = document.getElementById('next-countdown');
+
+      let seconds = 8;
+      let paused = false;
+      let questionTimer = null;
+      let nextTimer = null;
+
+      function showResults() {
+        clearInterval(questionTimer);
+        app.dataset.state = 'results';
+
+        // 結果表示から次の問題までは、システム固定で5秒
+        let remaining = 5;
+        nextCountdownEl.textContent = `あと${remaining}秒で自動的に次の問題へ進みます`;
+        nextTimer = setInterval(() => {
+          if (paused) return;
+          remaining -= 1;
+          if (remaining <= 0) {
+            clearInterval(nextTimer);
+            nextCountdownEl.textContent = '次の問題へ移動します…';
+            return;
+          }
+          nextCountdownEl.textContent = `あと${remaining}秒で自動的に次の問題へ進みます`;
+        }, 1000);
+      }
+
+      questionTimer = setInterval(() => {
+        if (paused) return;
         seconds -= 1;
         if (seconds < 0) {
-          clearInterval(interval);
+          showResults();
           return;
         }
         timerEl.textContent = String(seconds).padStart(2, '0');
         timerEl.classList.toggle('urgent', seconds <= 5);
       }, 1000);
+
+      // 出題中・結果表示中、どちらの一時停止ボタンも同じ状態を共有する
+      document.querySelectorAll('.pause-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          paused = !paused;
+          document.querySelectorAll('.pause-btn').forEach((b) => {
+            b.textContent = paused ? '▶ 再開' : '⏸ 一時停止';
+          });
+        });
+      });
+
+      // ホストの判断で、制限時間を待たずに今すぐ結果を見る
+      document
+        .getElementById('skip-btn')
+        .addEventListener('click', showResults);
+
+      // デモ用: 次の問題へ進む操作(本実装では次の設問データに切り替える)
+      document.getElementById('next-btn').addEventListener('click', () => {
+        clearInterval(nextTimer);
+        console.log(
+          '次の問題へ進む（本実装ではここで次の設問データを読み込む）'
+        );
+      });
+
+      document.querySelectorAll('#abort-btn, #abort-btn-2').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          console.log(
+            'セッションを中断する（本実装では確認の上、セッションを終了する）'
+          );
+        });
+      });
     </script>
   </body>
 </html>
