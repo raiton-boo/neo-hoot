@@ -26,4 +26,24 @@ export class AuthController {
 
     res.redirect(process.env.WEB_URL ?? 'http://localhost:3000');
   }
+
+  @Get('google')
+  @UseGuards(AuthGuard('google'))
+  googleLogin() {
+    // ガードがGoogleの認証画面へリダイレクトする
+  }
+
+  @Get('google/callback')
+  @UseGuards(AuthGuard('google'))
+  googleCallback(@Req() req: Request, @Res() res: Response) {
+    const authenticatedUser = req.user as { id: string };
+    const token = this.jwtService.sign({ userId: authenticatedUser.id });
+
+    res.cookie('access_token', token, {
+      httpOnly: true,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    res.redirect(process.env.WEB_URL ?? 'http://localhost:3000');
+  }
 }
