@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>neo-hoot | クイズ編集</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Paytone+One&family=Inter:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../shared.css" />
+    <style>
+      .question-list-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        border: var(--border-width) solid var(--color-ink);
+        border-radius: var(--radius);
+        background: var(--color-surface);
+        margin-bottom: 1rem;
+      }
+      .question-list-item .qnum {
+        font-family: 'Paytone One', system-ui, sans-serif;
+        width: 2rem;
+      }
+      .question-list-item .qbody {
+        flex: 1;
+      }
+      .question-edit-card {
+        box-shadow: var(--shadow-offset) var(--shadow-offset) 0
+          var(--color-accent);
+        border-color: var(--color-accent);
+      }
+      .choice-row {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+      }
+      .choice-row .input {
+        flex: 1;
+      }
+      .correct-toggle {
+        width: 2.5rem;
+        height: 2.5rem;
+        border: var(--border-width) solid var(--color-ink);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        flex-shrink: 0;
+      }
+      .correct-toggle.is-correct {
+        background: var(--color-success);
+        color: #fff;
+      }
+      .type-tabs {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+      }
+      .type-tabs .btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="host-screen">
+      <div class="app-header">
+        <a class="logo" href="dashboard.html">neo-hoot</a>
+        <button class="user-menu">
+          <span class="avatar">田</span>
+          <span>たなか さん</span>
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="3"
+          >
+            <path d="M6 9l6 6 6-6" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="host-header">
+        <input
+          class="input"
+          style="
+            width: auto;
+            font-size: 1.5rem;
+            font-family: 'Paytone One', system-ui, sans-serif;
+          "
+          value="都道府県クイズ"
+        />
+        <button class="btn btn-success">保存する</button>
+      </div>
+
+      <h2>設問一覧（全4問）</h2>
+
+      <div class="question-list-item">
+        <span class="qnum">Q1</span>
+        <span class="qbody">日本で一番人口が多い都道府県は？</span>
+        <span class="badge">4択</span>
+      </div>
+      <div class="question-list-item">
+        <span class="qnum">Q3</span>
+        <span class="qbody">北海道の道庁所在地は札幌市である</span>
+        <span class="badge">○×</span>
+      </div>
+      <div class="question-list-item">
+        <span class="qnum">Q4</span>
+        <span class="qbody">一番好きな都道府県は？</span>
+        <span class="badge" style="background: var(--color-accent); color: #fff"
+          >アンケート</span
+        >
+      </div>
+
+      <h2>設問を編集中: Q2</h2>
+      <div class="card question-edit-card">
+        <div class="type-tabs">
+          <button class="btn">4択</button>
+          <button class="btn btn-secondary">○×</button>
+          <button class="btn btn-secondary">アンケート</button>
+        </div>
+
+        <label class="lede" style="display: block; margin-bottom: 0.25rem"
+          >設問文</label
+        >
+        <input
+          class="input"
+          type="text"
+          value="日本で一番面積が大きい都道府県は？"
+          style="margin-bottom: 1rem"
+        />
+
+        <label class="lede" style="display: block; margin-bottom: 0.5rem"
+          >選択肢（左のボタンで正解を指定）</label
+        >
+        <div class="choice-row">
+          <div class="correct-toggle is-correct">✓</div>
+          <input class="input" type="text" value="北海道" />
+        </div>
+        <div class="choice-row">
+          <div class="correct-toggle">✕</div>
+          <input class="input" type="text" value="岩手県" />
+        </div>
+        <div class="choice-row">
+          <div class="correct-toggle">✕</div>
+          <input class="input" type="text" value="福島県" />
+        </div>
+        <div class="choice-row">
+          <div class="correct-toggle">✕</div>
+          <input class="input" type="text" value="長野県" />
+        </div>
+
+        <label
+          class="lede"
+          style="display: block; margin-bottom: 0.25rem; margin-top: 1rem"
+          >制限時間（秒）</label
+        >
+        <input class="input" type="number" value="20" style="width: 100px" />
+      </div>
+
+      <button class="btn btn-block" style="margin-top: 1.5rem">
+        ＋ 設問を追加
+      </button>
+    </div>
+  </body>
+</html>
