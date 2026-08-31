@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>neo-hoot | ロビー(ホスト)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Paytone+One&family=Inter:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../shared.css" />
+    <style>
+      .lobby-hero {
+        text-align: center;
+        margin-bottom: 2rem;
+      }
+
+      /* ルームコードとQRコードを1枚のカードにまとめて「セット」であることを示す */
+      .room-qr-card {
+        display: inline-flex;
+        align-items: center;
+        gap: 2rem;
+        flex-wrap: wrap;
+        justify-content: center;
+        padding: 2rem;
+      }
+
+      .room-code {
+        font-family: 'Paytone One', system-ui, sans-serif;
+        font-size: 4rem;
+        letter-spacing: 0.1em;
+        display: inline-block;
+        padding: 0.5rem 1.5rem;
+        border: var(--border-width) solid var(--color-ink);
+        border-radius: var(--radius);
+        background: var(--color-primary);
+      }
+
+      .qr-block {
+        width: 160px;
+        height: 160px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        border: var(--border-width) solid var(--color-ink);
+        border-radius: var(--radius);
+        background: #fff;
+      }
+
+      .qr-block img {
+        display: none;
+        width: 100%;
+        height: 100%;
+      }
+
+      /* 参加者一覧: チップを固定幅にし、10個ちょうどで折り返る幅にコンテナを制限する。
+         人数が少ないときに余白だけ広がるのを防ぐため、Gridの「常に10列」ではなくFlexの自然な折り返しを使う */
+      .participant-grid {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: flex-start;
+        gap: 0.75rem;
+        max-width: 1108px; /* 100px(チップ幅) * 10 + 0.75rem(12px)ギャップ * 9 */
+        margin: 0 auto;
+      }
+
+      .participant-chip {
+        width: 100px;
+        text-align: center;
+        padding: 0.85rem 0.5rem;
+        border: var(--border-width) solid var(--color-ink);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--color-ink);
+        background: var(--color-surface);
+        color: var(--color-ink);
+        font-weight: 600;
+        font-size: 0.9rem;
+        /* 長い名前は折り返さず「...」で省略し、チップの高さを一定に保つ */
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      /* 接続中(まだ名前が確定していない)状態のプレースホルダー */
+      .participant-chip.connecting {
+        color: var(--color-ink);
+        opacity: 0.5;
+        animation: connecting-pulse 1s ease-in-out infinite;
+      }
+
+      @keyframes connecting-pulse {
+        0%,
+        100% {
+          opacity: 0.3;
+        }
+        50% {
+          opacity: 0.7;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="lobby-hero">
+      <p class="lede" style="font-size: 1.1rem">
+        <span class="pulse-dot"></span>参加者を待っています
+      </p>
+
+      <div class="card room-qr-card">
+        <div class="room-code">8823</div>
+        <div class="qr-block">
+          <div class="spinner" id="qr-spinner"></div>
+          <img
+            id="qr-img"
+            src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=http://192.168.3.33:3000/participant/join.html%3Froom%3D8823"
+            alt="このルームに参加するQRコード"
+          />
+        </div>
+      </div>
+
+      <p
+        class="lede"
+        style="
+          margin-top: 1.5rem;
+          max-width: 500px;
+          margin-left: auto;
+          margin-right: auto;
+        "
+      >
+        <strong>neo-hoot.app/join</strong>
+        でルームコードを入力、またはQRコードを読み取って参加してください。
+      </p>
+    </div>
+
+    <h2 style="text-align: center; border: none">
+      参加者（<span id="count">12</span>人）
+    </h2>
+    <div class="participant-grid" id="participant-grid">
+      <div class="participant-chip chip-pop-in" title="たろう">たろう</div>
+      <div class="participant-chip chip-pop-in" title="はなこ">はなこ</div>
+      <div class="participant-chip chip-pop-in" title="じろう">じろう</div>
+      <div class="participant-chip chip-pop-in" title="さくら">さくら</div>
+      <div class="participant-chip chip-pop-in" title="けんた">けんた</div>
+      <div class="participant-chip chip-pop-in" title="みお">みお</div>
+      <div class="participant-chip chip-pop-in" title="ゆうた">ゆうた</div>
+      <div class="participant-chip chip-pop-in" title="あやか">あやか</div>
+      <div class="participant-chip chip-pop-in" title="りく">りく</div>
+      <div class="participant-chip chip-pop-in" title="まなみ">まなみ</div>
+      <div class="participant-chip chip-pop-in" title="そうた">そうた</div>
+      <div class="participant-chip chip-pop-in" title="ひなの">ひなの</div>
+    </div>
+
+    <div style="text-align: center; margin-top: 2.5rem">
+      <button
+        class="btn btn-success"
+        style="font-size: 1.25rem; padding: 1rem 3rem"
+      >
+        開始する
+      </button>
+    </div>
+
+    <script>
+      // QRコード画像の読み込みが完了するまでスピナーを表示する
+      const qrImg = document.getElementById('qr-img');
+      qrImg.addEventListener('load', () => {
+        document.getElementById('qr-spinner').style.display = 'none';
+        qrImg.style.display = 'block';
+      });
+
+      // デモ用: 新しい参加者が加わる様子を疑似的に再現する（本実装ではSocket.ioのイベントで追加する）
+      // 「接続中(プレースホルダー)」→「参加確定(実際の名前・ポップイン)」の2段階にする
+      const demoNames = [
+        'ゆき',
+        'かい',
+        'つばさ',
+        'あおい',
+        'れん',
+        'みずき',
+        'こうき',
+        'ももか',
+        'だいち',
+        'けんたろうまさひこ', // 長い名前がどう表示されるかの確認用
+      ];
+      const grid = document.getElementById('participant-grid');
+      const countLabel = document.getElementById('count');
+
+      function addParticipant(name) {
+        const chip = document.createElement('div');
+        chip.className = 'participant-chip connecting';
+        chip.textContent = '…';
+        grid.appendChild(chip);
+
+        // 接続確認が取れるまでの時間(想定)
+        setTimeout(() => {
+          chip.classList.remove('connecting');
+          chip.classList.add('chip-pop-in');
+          chip.textContent = name;
+          chip.title = name;
+          countLabel.textContent =
+            grid.querySelectorAll(':not(.connecting)').length;
+        }, 900);
+      }
+
+      demoNames.forEach((name, i) => {
+        setTimeout(() => addParticipant(name), i * 2000);
+      });
+    </script>
+  </body>
+</html>

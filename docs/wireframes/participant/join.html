@@ -61,6 +61,7 @@
           >ルームコード</label
         >
         <input
+          id="room-code-input"
           class="input"
           type="text"
           placeholder="例: 8823"
@@ -85,5 +86,15 @@
         <button class="btn btn-block">参加する</button>
       </div>
     </div>
+
+    <script>
+      // QRコードのURLに ?room=xxxx が含まれていたら、ルームコード欄に自動で反映する
+      const roomFromUrl = new URLSearchParams(window.location.search).get(
+        'room'
+      );
+      if (roomFromUrl) {
+        document.getElementById('room-code-input').value = roomFromUrl;
+      }
+    </script>
   </body>
 </html>
