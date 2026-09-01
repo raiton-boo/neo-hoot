@@ -6,14 +6,7 @@ import { Profile, Strategy } from 'passport-google-oauth20';
 
 import { DATABASE_CONNECTION } from '../database/database.module.js';
 import { findOrLinkUser } from './find-or-link-user.js';
-
-function requireEnv(key: string): string {
-  const value = process.env[key];
-  if (!value) {
-    throw new Error(`Missing required environment variable: ${key}`);
-  }
-  return value;
-}
+import { requireEnv } from './require-env.js';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
