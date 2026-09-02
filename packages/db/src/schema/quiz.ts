@@ -12,4 +12,5 @@ export const quiz = pgTable('quiz', {
   updatedAt: timestamp('updated_at')
     .notNull()
     .$onUpdateFn(() => new Date()),
+  archivedAt: timestamp('archived_at'),
 });

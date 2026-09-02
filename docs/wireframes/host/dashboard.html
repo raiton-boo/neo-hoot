@@ -17,9 +17,13 @@
         grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
         gap: 1.5rem;
       }
+      .quiz-card {
+        position: relative;
+      }
       .quiz-card h3 {
         font-family: 'Paytone One', system-ui, sans-serif;
         margin: 0 0 0.5rem;
+        padding-right: 2rem;
       }
       .quiz-card .meta {
         display: flex;
@@ -29,10 +33,94 @@
         gap: 0.5rem;
         margin-top: 1rem;
       }
+      .page-title-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 0.5rem;
+      }
       .page-title {
         font-size: 1.5rem;
         margin: 0;
         border: none;
+      }
+      .header-actions {
+        display: flex;
+        gap: 0.75rem;
+      }
+      .archive-link {
+        display: inline-flex;
+        align-items: center;
+        font-size: 0.85rem;
+        text-decoration: none;
+      }
+
+      /* カード右上の「⋮」メニュー */
+      .card-menu-btn {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        width: 2.25rem;
+        height: 2.25rem;
+        border: var(--border-width) solid var(--color-ink);
+        border-radius: var(--radius);
+        background: var(--color-surface);
+        font-size: 1.2rem;
+        line-height: 1;
+        cursor: pointer;
+      }
+      .card-menu-btn:active {
+        transform: translate(2px, 2px);
+      }
+      .card-menu {
+        display: none;
+        position: absolute;
+        top: 3.25rem;
+        right: 1rem;
+        z-index: 10;
+        background: var(--color-surface);
+        border: var(--border-width) solid var(--color-ink);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--color-ink);
+        overflow: hidden;
+        min-width: 170px;
+      }
+      .card-menu.open {
+        display: block;
+      }
+      .card-menu button {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: none;
+        border-bottom: 2px solid var(--color-ink);
+        background: var(--color-surface);
+        text-align: left;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: background 0.1s;
+      }
+      .card-menu button:last-child {
+        border-bottom: none;
+      }
+      .card-menu button:hover {
+        background: var(--color-bg);
+      }
+
+      /* アーカイブする瞬間の演出: 縮みながらフェードアウトしてから一覧から消える */
+      .quiz-card.archiving {
+        animation: archive-out 0.35s ease forwards;
+        pointer-events: none;
+      }
+      @keyframes archive-out {
+        to {
+          opacity: 0;
+          transform: scale(0.92);
+        }
       }
     </style>
   </head>
@@ -54,13 +142,23 @@
         </button>
       </div>
 
-      <div class="host-header">
+      <div class="page-title-row">
         <h2 class="page-title">クイズ一覧</h2>
-        <button class="btn">＋ 新しいクイズを作成</button>
+        <div class="header-actions">
+          <a class="btn archive-link" href="archived-quizzes.html">
+            アーカイブ済みを見る(1)
+          </a>
+          <button class="btn">＋ 新しいクイズを作成</button>
+        </div>
       </div>
 
-      <div class="quiz-grid">
+      <div class="quiz-grid" style="margin-top: 1.5rem">
         <div class="card quiz-card">
+          <button class="card-menu-btn">⋮</button>
+          <div class="card-menu">
+            <button class="edit-btn">編集する</button>
+            <button class="archive-btn">アーカイブする</button>
+          </div>
           <h3>都道府県クイズ</h3>
           <p class="lede" style="margin: 0">全10問・4択</p>
           <div class="meta">
@@ -74,6 +172,11 @@
           </div>
         </div>
         <div class="card quiz-card">
+          <button class="card-menu-btn">⋮</button>
+          <div class="card-menu">
+            <button class="edit-btn">編集する</button>
+            <button class="archive-btn">アーカイブする</button>
+          </div>
           <h3>チームビルディング アンケート</h3>
           <p class="lede" style="margin: 0">全5問・アンケート</p>
           <div class="meta">
@@ -86,7 +189,62 @@
             </button>
           </div>
         </div>
+        <div class="card quiz-card">
+          <button class="card-menu-btn">⋮</button>
+          <div class="card-menu">
+            <button class="edit-btn">編集する</button>
+            <button class="archive-btn">アーカイブする</button>
+          </div>
+          <h3>新人研修クイズ(未開催)</h3>
+          <p class="lede" style="margin: 0">全3問・○×</p>
+          <div class="meta">
+            <span class="badge">開催回数: 0回</span>
+            <button
+              class="btn btn-accent"
+              style="padding: 0.5rem 1rem; font-size: 0.85rem"
+            >
+              開催する
+            </button>
+          </div>
+        </div>
       </div>
     </div>
+
+    <script>
+      // カードごとの「⋮」メニューの開閉
+      document.querySelectorAll('.card-menu-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const menu = btn.nextElementSibling;
+          document.querySelectorAll('.card-menu.open').forEach((openMenu) => {
+            if (openMenu !== menu) openMenu.classList.remove('open');
+          });
+          menu.classList.toggle('open');
+        });
+      });
+
+      document.addEventListener('click', (event) => {
+        if (!event.target.closest('.card-menu-btn')) {
+          document
+            .querySelectorAll('.card-menu.open')
+            .forEach((menu) => menu.classList.remove('open'));
+        }
+      });
+
+      // アーカイブする: 縮みながらフェードアウトしてから一覧から消える
+      document.querySelectorAll('.archive-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const card = btn.closest('.quiz-card');
+          card.classList.add('archiving');
+          card.addEventListener(
+            'animationend',
+            () => {
+              card.remove();
+              // 本実装ではここでアーカイブAPIを呼ぶ
+            },
+            { once: true }
+          );
+        });
+      });
+    </script>
   </body>
 </html>

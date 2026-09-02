@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>neo-hoot | アーカイブ済みクイズ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Paytone+One&family=Inter:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../shared.css" />
+    <style>
+      .quiz-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 1.5rem;
+      }
+      .quiz-card h3 {
+        font-family: 'Paytone One', system-ui, sans-serif;
+        margin: 0 0 0.5rem;
+      }
+      .quiz-card .meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 1rem;
+      }
+      .page-title-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 0.5rem;
+      }
+      .page-title {
+        font-size: 1.5rem;
+        margin: 0;
+        border: none;
+      }
+      .back-link {
+        display: inline-flex;
+        align-items: center;
+        font-size: 0.85rem;
+        text-decoration: none;
+      }
+      .archived-note {
+        color: var(--color-ink);
+        opacity: 0.7;
+        font-size: 0.85rem;
+        margin: 0 0 1.5rem;
+      }
+
+      /* アーカイブ済みなので、色を落として「今は使っていない」感を出す */
+      .quiz-card.is-archived {
+        opacity: 0.7;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="host-screen">
+      <div class="app-header">
+        <a class="logo" href="dashboard.html">neo-hoot</a>
+        <button class="user-menu">
+          <span class="avatar">田</span>
+          <span>たなか さん</span>
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="3"
+          >
+            <path d="M6 9l6 6 6-6" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="page-title-row">
+        <h2 class="page-title">アーカイブ済みクイズ</h2>
+        <a class="btn back-link" href="dashboard.html">クイズ一覧に戻る</a>
+      </div>
+      <p class="archived-note">
+        一覧から非表示にしたクイズです。データは削除されていません。
+      </p>
+
+      <div class="quiz-grid">
+        <div class="card quiz-card is-archived">
+          <h3>2024年忘年会クイズ</h3>
+          <p class="lede" style="margin: 0">全8問・4択</p>
+          <div class="meta">
+            <span class="badge">開催回数: 3回</span>
+            <div style="display: flex; gap: 0.5rem">
+              <button
+                class="btn"
+                style="padding: 0.5rem 1rem; font-size: 0.85rem"
+              >
+                復元する
+              </button>
+              <button
+                class="btn btn-danger"
+                style="padding: 0.5rem 1rem; font-size: 0.85rem"
+              >
+                完全に削除する
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // 復元する: デモ用(本実装ではAPIを呼び、ダッシュボードに戻す)
+      document.querySelectorAll('.btn:not(.btn-danger)').forEach((btn) => {
+        if (btn.textContent.trim() !== '復元する') return;
+        btn.addEventListener('click', () => {
+          console.log('このクイズを復元する(本実装ではAPIを呼ぶ)');
+        });
+      });
+
+      // 完全に削除する: デモ用(本実装では開催履歴があると409エラーになる想定)
+      document.querySelectorAll('.btn-danger').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          console.log(
+            '完全に削除する(本実装では開催履歴があると409エラーになり、その場でエラーメッセージを表示する)'
+          );
+        });
+      });
+    </script>
+  </body>
+</html>

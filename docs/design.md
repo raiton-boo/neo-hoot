@@ -94,15 +94,16 @@
 
 画面固有の挙動・デザイン上の判断・修正の経緯は、対応するワイヤーフレームと同じ場所にある`.md`ファイルに記載する。
 
-| 画面                                | ドキュメント                                                             |
-| :---------------------------------- | :----------------------------------------------------------------------- |
-| ホスト・ログイン                    | [`wireframes/host/login.md`](./wireframes/host/login.md)                 |
-| ホスト・クイズ一覧                  | [`wireframes/host/dashboard.md`](./wireframes/host/dashboard.md)         |
-| ホスト・クイズ編集                  | [`wireframes/host/quiz-editor.md`](./wireframes/host/quiz-editor.md)     |
-| ホスト・ロビー                      | [`wireframes/host/lobby.md`](./wireframes/host/lobby.md)                 |
-| 参加者・ルーム参加                  | [`wireframes/participant/join.md`](./wireframes/participant/join.md)     |
-| 参加者・回答画面(4択/○×/アンケート) | [`wireframes/participant/answer.md`](./wireframes/participant/answer.md) |
-| ホスト・最終結果                    | [`wireframes/host/final-result.md`](./wireframes/host/final-result.md)   |
-| ホスト・出題進行                    | [`wireframes/host/question.md`](./wireframes/host/question.md)           |
+| 画面                                | ドキュメント                                                                   |
+| :---------------------------------- | :----------------------------------------------------------------------------- |
+| ホスト・ログイン                    | [`wireframes/host/login.md`](./wireframes/host/login.md)                       |
+| ホスト・クイズ一覧                  | [`wireframes/host/dashboard.md`](./wireframes/host/dashboard.md)               |
+| ホスト・アーカイブ済みクイズ        | [`wireframes/host/archived-quizzes.md`](./wireframes/host/archived-quizzes.md) |
+| ホスト・クイズ編集                  | [`wireframes/host/quiz-editor.md`](./wireframes/host/quiz-editor.md)           |
+| ホスト・ロビー                      | [`wireframes/host/lobby.md`](./wireframes/host/lobby.md)                       |
+| 参加者・ルーム参加                  | [`wireframes/participant/join.md`](./wireframes/participant/join.md)           |
+| 参加者・回答画面(4択/○×/アンケート) | [`wireframes/participant/answer.md`](./wireframes/participant/answer.md)       |
+| ホスト・最終結果                    | [`wireframes/host/final-result.md`](./wireframes/host/final-result.md)         |
+| ホスト・出題進行                    | [`wireframes/host/question.md`](./wireframes/host/question.md)                 |
 
 まだドキュメント化していない画面（設問結果、参加者側のロビー待機・個人結果・最終順位）は、指摘・変更が入った時点で同様に作成する。
