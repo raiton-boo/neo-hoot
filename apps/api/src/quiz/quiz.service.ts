@@ -7,7 +7,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import { eq, inArray } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNotNull, isNull } from 'drizzle-orm';
 import { DATABASE_CONNECTION } from '../database/database.module.js';
 import { CreateQuizDto } from './dto/create-quiz.dto.js';
 import { UpdateQuizDto } from './dto/update-quiz.dto.js';
@@ -19,7 +19,63 @@ export class QuizService {
   ) {}
 
   async getQuizzes(userId: string) {
-    return this.db.select().from(quiz).where(eq(quiz.userId, userId));
+    return this.db
+      .select()
+      .from(quiz)
+      .where(and(eq(quiz.userId, userId), isNull(quiz.archivedAt)))
+      .orderBy(desc(quiz.updatedAt));
+  }
+
+  async getArchivedQuizzes(userId: string) {
+    return this.db
+      .select()
+      .from(quiz)
+      .where(and(eq(quiz.userId, userId), isNotNull(quiz.archivedAt)))
+      .orderBy(desc(quiz.archivedAt));
+  }
+
+  async archiveQuiz(userId: string, quizId: string) {
+    const [existingQuiz] = await this.db
+      .select()
+      .from(quiz)
+      .where(eq(quiz.id, quizId));
+
+    if (!existingQuiz) {
+      throw new NotFoundException('Quiz not found');
+    }
+    if (existingQuiz.userId !== userId) {
+      throw new ForbiddenException('You do not have access to this quiz');
+    }
+
+    const [archivedQuiz] = await this.db
+      .update(quiz)
+      .set({ archivedAt: new Date() })
+      .where(eq(quiz.id, quizId))
+      .returning();
+
+    return archivedQuiz;
+  }
+
+  async unarchiveQuiz(userId: string, quizId: string) {
+    const [existingQuiz] = await this.db
+      .select()
+      .from(quiz)
+      .where(eq(quiz.id, quizId));
+
+    if (!existingQuiz) {
+      throw new NotFoundException('Quiz not found');
+    }
+    if (existingQuiz.userId !== userId) {
+      throw new ForbiddenException('You do not have access to this quiz');
+    }
+
+    const [restoredQuiz] = await this.db
+      .update(quiz)
+      .set({ archivedAt: null })
+      .where(eq(quiz.id, quizId))
+      .returning();
+
+    return restoredQuiz;
   }
 
   async getQuizById(userId: string, quizId: string) {

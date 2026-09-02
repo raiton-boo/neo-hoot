@@ -28,6 +28,24 @@ export class QuizController {
     return this.quizService.getQuizzes(authenticatedUser.id);
   }
 
+  @Get('archived')
+  getArchivedQuizzes(@Req() req: Request) {
+    const authenticatedUser = req.user as { id: string };
+    return this.quizService.getArchivedQuizzes(authenticatedUser.id);
+  }
+
+  @Post(':id/archive')
+  archiveQuiz(@Req() req: Request, @Param('id') id: string) {
+    const authenticatedUser = req.user as { id: string };
+    return this.quizService.archiveQuiz(authenticatedUser.id, id);
+  }
+
+  @Post(':id/unarchive')
+  unarchiveQuiz(@Req() req: Request, @Param('id') id: string) {
+    const authenticatedUser = req.user as { id: string };
+    return this.quizService.unarchiveQuiz(authenticatedUser.id, id);
+  }
+
   @Get(':id')
   getQuizById(@Req() req: Request, @Param('id') id: string) {
     const authenticatedUser = req.user as { id: string };
