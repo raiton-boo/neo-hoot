@@ -89,6 +89,7 @@ erDiagram
 - **QUESTION.type**: `choice`（4択）, `true_false`（○×）, `survey`（アンケート）の3種類。アンケートの場合、対応する`CHOICE`の`is_correct`はすべて`false`になる。
 - **QUESTION**に上限数の制約は設けない（1問以上であれば任意の数）。
 - **`survey`タイプの選択肢数**: 最低2、最大6。`choice`（常に4）・`true_false`（常に2）とは異なり可変だが、`.survey-list`（縦積みリスト表示）が見やすさを保てる範囲に収める。
+- **`QUESTION.order` / `CHOICE.order`の重複禁止**: 同じ`QUIZ`内の`QUESTION.order`同士、および同じ`QUESTION`内の`CHOICE.order`同士は重複してはいけない（表示順が意味を成さなくなるため）。API側（DTOのカスタムバリデータ）でチェックする。
 
 ## 削除時の連鎖動作（ON DELETE）
 
