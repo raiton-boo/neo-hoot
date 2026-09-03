@@ -1,5 +1,5 @@
 {
-  "id": "6d11cbc7-e838-4bfb-bee7-51200f023167",
+  "id": "fed91916-6ba2-422f-968f-36cca052554d",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -292,7 +292,29 @@
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "participant_game_session_nickname_idx": {
+          "name": "participant_game_session_nickname_idx",
+          "columns": [
+            {
+              "expression": "game_session_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "nickname",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "participant_game_session_id_game_session_id_fk": {
           "name": "participant_game_session_id_game_session_id_fk",
