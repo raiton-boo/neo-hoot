@@ -1,21 +1,16 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { describe, expect, it } from 'vitest';
 
-import { beforeEach, describe, expect, it } from 'vitest';
-
+import { testDb } from '../../test/test-db.js';
+import { GameStateService } from './game-state/game-state.service.js';
 import { GameGateway } from './game.gateway.js';
+import { GameService } from './game.service.js';
 
 describe('GameGateway', () => {
-  let gateway: GameGateway;
-
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [GameGateway],
-    }).compile();
-
-    gateway = module.get<GameGateway>(GameGateway);
-  });
-
   it('should be defined', () => {
+    const gameService = new GameService(testDb);
+    const gameStateService = new GameStateService();
+    const gateway = new GameGateway(gameService, gameStateService);
+
     expect(gateway).toBeDefined();
   });
 });
