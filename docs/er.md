@@ -7,6 +7,7 @@
 ```mermaid
 erDiagram
     USER ||--o{ QUIZ : "作成する"
+    USER ||--o{ OAUTH_IDENTITY : "連携する"
     QUIZ ||--|{ QUESTION : "含む"
     QUESTION ||--|{ CHOICE : "選択肢を持つ"
     QUIZ ||--o{ GAME_SESSION : "開催される"
@@ -20,7 +21,13 @@ erDiagram
         uuid id PK
         string email
         string name
-        string oauth_provider
+        timestamp created_at
+    }
+
+    OAUTH_IDENTITY {
+        uuid id PK
+        uuid user_id FK
+        string provider
         string oauth_id
         timestamp created_at
     }
@@ -85,7 +92,7 @@ erDiagram
 - **QUIZ ↔ GAME_SESSION**: 1つのクイズ（テンプレート）から、何度でもゲームセッション（開催）を作れる1対多の関係（`spec.md`の「データの2層構造」に対応）。
 - **PARTICIPANT**: `USER`とは無関係の独立したエンティティ。アカウント不要の参加者を表す。
 - **PARTICIPANTのニックネーム重複防止**: `room_code`と同様、チェックしてからINSERTする方式は競合状態（race condition）が起こりうるため、`(game_session_id, nickname)`への複合ユニーク制約をDB側に設け、INSERT時の制約違反で重複を検知する方式にする。`spec.md`の「参加者ニックネームの重複」を参照。
-- **USER.oauth_provider / oauth_id**: 認証実装時に、同じメールアドレスで別プロバイダーからログインした場合はこの2つを新しいプロバイダーの値で上書きする（アカウント連携。詳細は`docs/architecture.md`参照）。同時ログイン等の競合による重複行を防ぐため、`(oauth_provider, oauth_id)`への複合ユニーク制約をDB側に設けている。
+- **OAUTH_IDENTITY**: `USER`とは別テーブルに分離しているため、1ユーザーが複数のOAuthプロバイダーを同時に連携できる（詳細は`docs/architecture.md`「6. 認証フロー」参照）。同時ログイン等の競合による重複行を防ぐため、`(provider, oauth_id)`への複合ユニーク制約をDB側に設けている。`USER`が削除されると連鎖して削除される（`ON DELETE CASCADE`）。
 - **ANSWER**: 「誰が」「どのセッションの」「どの設問に」「どの選択肢を」「何ミリ秒で」回答したかを1レコードで表す。`score`は正解・回答速度から計算した結果を保存する（毎回計算し直さずに済むように）。
 - **未回答の表現**: 制限時間内に回答しなかった参加者については、`ANSWER`の行自体を作らない（`choice_id`をNULL許容にして「未回答」を表す方式は採らない）。「回答済み人数」は該当設問に紐づく`ANSWER`の件数を数えるだけで求まり、`choice_id`が常に「実際に選ばれた選択肢」を指すため意味が曖昧にならない。
 - **QUESTION.type**: `choice`（4択）, `true_false`（○×）, `survey`（アンケート）の3種類。アンケートの場合、対応する`CHOICE`の`is_correct`はすべて`false`になる。

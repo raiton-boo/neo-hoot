@@ -3,6 +3,7 @@ import {
   answer,
   choice,
   gameSession,
+  oauthIdentity,
   participant,
   question,
   quiz,
@@ -24,6 +25,7 @@ await db.transaction(async (tx) => {
   await tx.delete(choice);
   await tx.delete(question);
   await tx.delete(quiz);
+  await tx.delete(oauthIdentity);
   await tx.delete(user);
 
   const host = at(
@@ -32,12 +34,16 @@ await db.transaction(async (tx) => {
       .values({
         email: 'demo@example.com',
         name: 'デモホスト',
-        oauthProvider: 'google',
-        oauthId: 'demo-google-id',
       })
       .returning(),
     0
   );
+
+  await tx.insert(oauthIdentity).values({
+    userId: host.id,
+    provider: 'google',
+    oauthId: 'demo-google-id',
+  });
 
   // --- クイズ1: 日本地理クイズ ---
   const geoQuiz = at(
