@@ -1,13 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
 import { testDb } from '../../test/test-db.js';
+import { testQueue } from '../../test/test-queue.js';
 import { GameStateService } from './game-state/game-state.service.js';
 import { GameGateway } from './game.gateway.js';
 import { GameService } from './game.service.js';
 
 describe('GameGateway', () => {
   it('should be defined', () => {
-    const gameService = new GameService(testDb);
+    const gameService = new GameService(testDb, testQueue);
     const gameStateService = new GameStateService();
     const gateway = new GameGateway(gameService, gameStateService);
 
