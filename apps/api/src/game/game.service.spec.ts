@@ -4,9 +4,10 @@ import { eq } from 'drizzle-orm';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 
 import { closeTestDb, testDb } from '../../test/test-db.js';
+import { closeTestQueue, testQueue } from '../../test/test-queue.js';
 import { GameService } from './game.service.js';
 
-const service = new GameService(testDb);
+const service = new GameService(testDb, testQueue);
 
 describe('GameService', () => {
   let userId: string;
@@ -80,6 +81,7 @@ describe('GameService', () => {
   afterAll(async () => {
     await testDb.delete(quiz).where(eq(quiz.id, quizId));
     await testDb.delete(user).where(eq(user.id, userId));
+    await closeTestQueue();
     await closeTestDb();
   });
 

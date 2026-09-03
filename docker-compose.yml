@@ -30,6 +30,7 @@ services:
     environment:
       PORT: 3001
       POSTGRES_HOST: postgres
+      REDIS_HOST: redis
       CHOKIDAR_USEPOLLING: 'true'
     volumes:
       - .:/app

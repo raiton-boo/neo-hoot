@@ -2,6 +2,7 @@ import {
   answer,
   choice,
   db as DbInstance,
+  gameResult,
   gameSession,
   participant,
   question,
@@ -14,6 +15,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 import { and, asc, count, desc, eq, inArray, sql } from 'drizzle-orm';
 import postgres from 'postgres';
 
@@ -21,11 +24,13 @@ import { DATABASE_CONNECTION } from '../database/database.module.js';
 
 const MAX_ROOM_CODE_ATTEMPTS = 10;
 const UNIQUE_VIOLATION_CODE = '23505';
+const ROOM_EXPIRY_DELAY_MS = 10 * 60 * 1000;
 
 @Injectable()
 export class GameService {
   constructor(
     @Inject(DATABASE_CONNECTION) private readonly db: typeof DbInstance,
+    @InjectQueue('game-jobs') private readonly gameJobsQueue: Queue,
   ) {}
 
   async createRoom(quizId: string) {
@@ -50,6 +55,12 @@ export class GameService {
         if (!session) {
           throw new Error('セッションの作成に失敗しました');
         }
+
+        await this.gameJobsQueue.add(
+          'expire-room',
+          { roomCode: session.roomCode },
+          { delay: ROOM_EXPIRY_DELAY_MS },
+        );
 
         return session;
       } catch (error) {
@@ -277,6 +288,8 @@ export class GameService {
           eq(gameSession.status, 'in_progress'),
         ),
       );
+
+    await this.gameJobsQueue.add('aggregate-result', { roomCode });
   }
 
   async getQuestionByOrder(roomCode: string, order: number) {
@@ -326,5 +339,77 @@ export class GameService {
       cause instanceof postgres.PostgresError &&
       cause.code === UNIQUE_VIOLATION_CODE
     );
+  }
+
+  async expireRoomIfWaiting(roomCode: string): Promise<void> {
+    await this.db
+      .update(gameSession)
+      .set({ status: 'expired' })
+      .where(
+        and(
+          eq(gameSession.roomCode, roomCode),
+          eq(gameSession.status, 'waiting'),
+        ),
+      );
+  }
+
+  async aggregateGameResult(roomCode: string): Promise<void> {
+    const [session] = await this.db
+      .select({ id: gameSession.id, quizId: gameSession.quizId })
+      .from(gameSession)
+      .where(eq(gameSession.roomCode, roomCode));
+
+    if (!session) {
+      return;
+    }
+
+    const participantStats = await this.db
+      .select({
+        participantId: participant.id,
+        nickname: participant.nickname,
+        totalScore: sql<number>`coalesce(sum(${answer.score}), 0)::int`,
+        correctCount: sql<number>`coalesce(sum(case when ${choice.isCorrect} then 1 else 0 end), 0)::int`,
+        answeredCount: count(answer.id),
+        averageResponseTimeMs: sql<number>`coalesce(avg(${answer.responseTimeMs}), 0)::int`,
+      })
+      .from(participant)
+      .leftJoin(answer, eq(answer.participantId, participant.id))
+      .leftJoin(choice, eq(choice.id, answer.choiceId))
+      .where(eq(participant.gameSessionId, session.id))
+      .groupBy(participant.id, participant.nickname);
+
+    const questionStats = await this.db
+      .select({
+        questionId: question.id,
+        order: question.order,
+        body: question.body,
+        correctCount: sql<number>`coalesce(sum(case when ${choice.isCorrect} then 1 else 0 end), 0)::int`,
+        answeredCount: count(answer.id),
+        averageResponseTimeMs: sql<number>`coalesce(avg(${answer.responseTimeMs}), 0)::int`,
+      })
+      .from(question)
+      .leftJoin(
+        answer,
+        and(
+          eq(answer.questionId, question.id),
+          eq(answer.gameSessionId, session.id),
+        ),
+      )
+      .leftJoin(choice, eq(choice.id, answer.choiceId))
+      .where(eq(question.quizId, session.quizId))
+      .groupBy(question.id, question.order, question.body)
+      .orderBy(asc(question.order));
+
+    await this.db
+      .insert(gameResult)
+      .values({
+        gameSessionId: session.id,
+        participantStats,
+        questionStats,
+      })
+      .onConflictDoUpdate({
+        target: gameResult.gameSessionId,
+        set: { participantStats, questionStats },
+      });
   }
 }
