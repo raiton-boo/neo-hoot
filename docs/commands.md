@@ -74,3 +74,9 @@ cd packages/db
 | `pnpm db:seed`     | 開発用のサンプルデータを流し込む（既存データは一度全部削除してから入れ直す）                                 |
 
 スキーマを変更した時の基本の流れは「`db:generate` → `db:migrate` → （必要なら`db:seed`）」の順。
+
+テスト用データベース（`neohoot_test`）にもマイグレーションを適用し忘れないこと。準備手順は`docs/setup.md`の「テスト用データベースの準備」参照。
+
+```bash
+POSTGRES_DB=neohoot_test pnpm db:migrate
+```

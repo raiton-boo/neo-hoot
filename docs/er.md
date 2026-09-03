@@ -32,6 +32,7 @@ erDiagram
         string description
         timestamp created_at
         timestamp updated_at
+        timestamp archived_at
     }
 
     QUESTION {
@@ -89,6 +90,7 @@ erDiagram
 - **QUESTION.type**: `choice`（4択）, `true_false`（○×）, `survey`（アンケート）の3種類。アンケートの場合、対応する`CHOICE`の`is_correct`はすべて`false`になる。
 - **QUESTION**に上限数の制約は設けない（1問以上であれば任意の数）。
 - **`survey`タイプの選択肢数**: 最低2、最大6。`choice`（常に4）・`true_false`（常に2）とは異なり可変だが、`.survey-list`（縦積みリスト表示）が見やすさを保てる範囲に収める。
+- **`QUESTION.order` / `CHOICE.order`の重複禁止**: 同じ`QUIZ`内の`QUESTION.order`同士、および同じ`QUESTION`内の`CHOICE.order`同士は重複してはいけない（表示順が意味を成さなくなるため）。API側（DTOのカスタムバリデータ）でチェックする。
 
 ## 削除時の連鎖動作（ON DELETE）
 
@@ -107,6 +109,8 @@ erDiagram
 | `CHOICE` → `ANSWER`            | 制限（デフォルト、指定なし） | 同上（選択肢について）                                             |
 
 **アカウント削除との整合性について**: `USER`→`QUIZ`のCASCADEと`QUIZ`→`GAME_SESSION`の制限は、そのままでは矛盾する（開催履歴のあるクイズを持つユーザーを削除しようとすると、連鎖の途中でブロックされる）。DBの制約だけでは「なぜ削除するか」を区別できずこの矛盾を解決できないため、アカウント削除はAPI側で明示的な順序付き削除処理として実装する。詳細は`docs/architecture.md`の「アカウント削除の実装方針」を参照。
+
+**アーカイブ（論理削除）について**: 「一度でも開催したクイズは削除できない」制約により、開催済みのクイズは一覧に残り続けてしまう。これを解消するため、`QUIZ.archived_at`（NULL許容のタイムスタンプ）を追加し、削除の代わりに「アーカイブする」（`archived_at`に日時をセットするだけ）という操作を用意する。一覧取得時は`archived_at IS NULL`のものだけを表示する。データそのものは削除されないため、開催履歴の保護という当初の目的とも矛盾しない。詳細は`docs/wireframes/host/dashboard.md`を参照。
 
 ## フィールドごとの制約
 

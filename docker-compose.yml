@@ -23,6 +23,7 @@ services:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
+    init: true
     restart: unless-stopped
     ports:
       - '${API_PORT:-3001}:3001'

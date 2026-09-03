@@ -51,7 +51,8 @@ CREATE TABLE "quiz" (
 	"title" varchar(30) NOT NULL,
 	"description" varchar(60),
 	"created_at" timestamp DEFAULT now() NOT NULL,
-	"updated_at" timestamp NOT NULL
+	"updated_at" timestamp NOT NULL,
+	"archived_at" timestamp
 );
 --> statement-breakpoint
 CREATE TABLE "user" (

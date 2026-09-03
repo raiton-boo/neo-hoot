@@ -38,6 +38,7 @@ cp .env.example .env
 | `POSTGRES_USER`     | PostgreSQLの接続ユーザー名                                                                                                              |
 | `POSTGRES_PASSWORD` | PostgreSQLの接続パスワード                                                                                                              |
 | `POSTGRES_DB`       | 作成するデータベース名                                                                                                                  |
+| `POSTGRES_TEST_DB`  | テスト実行用の専用データベース名（開発用データと混ざらないよう分離する。作成手順は下記「テスト用データベースの準備」参照）              |
 | `POSTGRES_PORT`     | ホスト側に公開するPostgreSQLのポート（デフォルト5432）                                                                                  |
 | `POSTGRES_HOST`     | PostgreSQLの接続先ホスト名（デフォルト`localhost`。Dockerコンテナ内(`apps/api`)からは`docker-compose.yml`側で`postgres`に上書きされる） |
 | `REDIS_PORT`        | ホスト側に公開するRedisのポート（デフォルト6379）                                                                                       |
@@ -94,6 +95,22 @@ pnpm run ngrok
 `apps/web`（ポート3000）を外部公開する。あらかじめ`pnpm --filter web dev`でフロントエンドを起動しておくこと。起動後にターミナルへ表示される`https://xxxx.ngrok-free.app`のようなURLを、参加者側の共有先として使う。
 
 現状は`apps/web`のみを公開する想定で、`apps/api`（Socket.io）を含めた外部公開は未検証（TODO）。
+
+## テスト用データベースの準備
+
+`apps/api`のVitestテスト（DBに依存するもの）は、開発用の`neohoot`データベースとは別の`neohoot_test`に接続する（`docs/rules/coding-style.md`の「DBに依存するテスト」参照）。同じPostgreSQLコンテナの中に、空のデータベースを1つ追加で作る（初回のみ）。
+
+```bash
+docker exec neo-hoot-postgres-1 createdb -U neohoot neohoot_test
+```
+
+作成したら、`neohoot_test`にも通常のマイグレーションを適用する。`POSTGRES_DB`を一時的に上書きして実行する。
+
+```bash
+POSTGRES_DB=neohoot_test pnpm --filter @neo-hoot/db db:migrate
+```
+
+スキーマを変更した際は、`neohoot`と`neohoot_test`の両方にマイグレーションを適用し忘れないよう注意する。
 
 ## 終了・後片付け
 
