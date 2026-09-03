@@ -1,4 +1,4 @@
-import { db as DbInstance, gameSession, quiz } from '@neo-hoot/db';
+import { db as DbInstance, gameSession, participant, quiz } from '@neo-hoot/db';
 import {
   ConflictException,
   Inject,
@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import postgres from 'postgres';
 
 import { DATABASE_CONNECTION } from '../database/database.module.js';
@@ -57,6 +57,40 @@ export class GameService {
     );
   }
 
+  async joinRoom(roomCode: string, nickname: string) {
+    const [session] = await this.db
+      .select({ id: gameSession.id })
+      .from(gameSession)
+      .where(
+        and(
+          eq(gameSession.roomCode, roomCode),
+          eq(gameSession.status, 'waiting'),
+        ),
+      );
+
+    if (!session) {
+      throw new NotFoundException('参加可能なルームが見つかりません');
+    }
+
+    try {
+      const [newParticipant] = await this.db
+        .insert(participant)
+        .values({ gameSessionId: session.id, nickname })
+        .returning();
+
+      if (!newParticipant) {
+        throw new Error('参加者の作成に失敗しました');
+      }
+
+      return newParticipant;
+    } catch (error) {
+      if (this.isNicknameConflict(error)) {
+        throw new ConflictException('このニックネームは既に使用されています');
+      }
+      throw error;
+    }
+  }
+
   private generateRoomCode(): string {
     return Math.floor(Math.random() * 10000)
       .toString()
@@ -64,6 +98,14 @@ export class GameService {
   }
 
   private isRoomCodeConflict(error: unknown): boolean {
+    const cause = error instanceof Error ? error.cause : undefined;
+    return (
+      cause instanceof postgres.PostgresError &&
+      cause.code === UNIQUE_VIOLATION_CODE
+    );
+  }
+
+  private isNicknameConflict(error: unknown): boolean {
     const cause = error instanceof Error ? error.cause : undefined;
     return (
       cause instanceof postgres.PostgresError &&
