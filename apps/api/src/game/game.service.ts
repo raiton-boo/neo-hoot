@@ -1,4 +1,12 @@
-import { db as DbInstance, gameSession, participant, quiz } from '@neo-hoot/db';
+import {
+  answer,
+  choice,
+  db as DbInstance,
+  gameSession,
+  participant,
+  question,
+  quiz,
+} from '@neo-hoot/db';
 import {
   ConflictException,
   Inject,
@@ -6,7 +14,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import { and, eq } from 'drizzle-orm';
+import { and, asc, eq, inArray } from 'drizzle-orm';
 import postgres from 'postgres';
 
 import { DATABASE_CONNECTION } from '../database/database.module.js';
@@ -45,7 +53,7 @@ export class GameService {
 
         return session;
       } catch (error) {
-        if (this.isRoomCodeConflict(error)) {
+        if (this.isUniqueViolation(error)) {
           continue;
         }
         throw error;
@@ -84,11 +92,143 @@ export class GameService {
 
       return newParticipant;
     } catch (error) {
-      if (this.isNicknameConflict(error)) {
+      if (this.isUniqueViolation(error)) {
         throw new ConflictException('このニックネームは既に使用されています');
       }
       throw error;
     }
+  }
+
+  async getCorrectChoiceId(questionId: string): Promise<string | null> {
+    const [correctChoice] = await this.db
+      .select({ id: choice.id })
+      .from(choice)
+      .where(
+        and(eq(choice.questionId, questionId), eq(choice.isCorrect, true)),
+      );
+
+    return correctChoice?.id ?? null;
+  }
+
+  async submitAnswer(params: {
+    roomCode: string;
+    participantId: string;
+    questionId: string;
+    choiceId: string;
+    responseTimeMs: number;
+    timeLimitSeconds: number;
+  }) {
+    const [session] = await this.db
+      .select({ id: gameSession.id })
+      .from(gameSession)
+      .where(eq(gameSession.roomCode, params.roomCode));
+
+    if (!session) {
+      throw new NotFoundException('ルームが見つかりません');
+    }
+
+    const [selectedChoice] = await this.db
+      .select({ isCorrect: choice.isCorrect })
+      .from(choice)
+      .where(eq(choice.id, params.choiceId));
+
+    if (!selectedChoice) {
+      throw new NotFoundException('選択肢が見つかりません');
+    }
+
+    const score = this.calculateScore(
+      selectedChoice.isCorrect,
+      params.responseTimeMs,
+      params.timeLimitSeconds,
+    );
+
+    try {
+      const [newAnswer] = await this.db
+        .insert(answer)
+        .values({
+          gameSessionId: session.id,
+          participantId: params.participantId,
+          questionId: params.questionId,
+          choiceId: params.choiceId,
+          responseTimeMs: params.responseTimeMs,
+          score,
+        })
+        .returning();
+
+      if (!newAnswer) {
+        throw new Error('回答の保存に失敗しました');
+      }
+
+      return newAnswer;
+    } catch (error) {
+      if (this.isUniqueViolation(error)) {
+        throw new ConflictException('既に回答済みです');
+      }
+      throw error;
+    }
+  }
+
+  private calculateScore(
+    isCorrect: boolean,
+    responseTimeMs: number,
+    timeLimitSeconds: number,
+  ): number {
+    if (!isCorrect) {
+      return 0;
+    }
+
+    const BASE_POINTS = 100;
+    const timeLimitMs = timeLimitSeconds * 1000;
+    const ratio = Math.min(responseTimeMs / timeLimitMs, 1);
+
+    return Math.round(BASE_POINTS * (1 - ratio * 0.5));
+  }
+
+  async startQuizIfNeeded(roomCode: string): Promise<void> {
+    await this.db
+      .update(gameSession)
+      .set({ status: 'in_progress', startedAt: new Date() })
+      .where(
+        and(
+          eq(gameSession.roomCode, roomCode),
+          eq(gameSession.status, 'waiting'),
+        ),
+      );
+  }
+
+  async getQuestionByOrder(roomCode: string, order: number) {
+    const [session] = await this.db
+      .select({ quizId: gameSession.quizId })
+      .from(gameSession)
+      .where(
+        and(
+          eq(gameSession.roomCode, roomCode),
+          inArray(gameSession.status, ['waiting', 'in_progress']),
+        ),
+      );
+
+    if (!session) {
+      throw new NotFoundException('ルームが見つかりません');
+    }
+
+    const [targetQuestion] = await this.db
+      .select()
+      .from(question)
+      .where(
+        and(eq(question.quizId, session.quizId), eq(question.order, order)),
+      );
+
+    if (!targetQuestion) {
+      return null;
+    }
+
+    const questionChoices = await this.db
+      .select({ id: choice.id, body: choice.body, order: choice.order })
+      .from(choice)
+      .where(eq(choice.questionId, targetQuestion.id))
+      .orderBy(asc(choice.order));
+
+    return { ...targetQuestion, choices: questionChoices };
   }
 
   private generateRoomCode(): string {
@@ -97,15 +237,7 @@ export class GameService {
       .padStart(4, '0');
   }
 
-  private isRoomCodeConflict(error: unknown): boolean {
-    const cause = error instanceof Error ? error.cause : undefined;
-    return (
-      cause instanceof postgres.PostgresError &&
-      cause.code === UNIQUE_VIOLATION_CODE
-    );
-  }
-
-  private isNicknameConflict(error: unknown): boolean {
+  private isUniqueViolation(error: unknown): boolean {
     const cause = error instanceof Error ? error.cause : undefined;
     return (
       cause instanceof postgres.PostgresError &&
