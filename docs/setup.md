@@ -92,9 +92,17 @@ ngrok config add-authtoken <ngrokダッシュボードで発行したトーク�
 pnpm run ngrok
 ```
 
-`apps/web`（ポート3000）を外部公開する。あらかじめ`pnpm --filter web dev`でフロントエンドを起動しておくこと。起動後にターミナルへ表示される`https://xxxx.ngrok-free.app`のようなURLを、参加者側の共有先として使う。
+リポジトリ直下の`ngrok.yml`に定義した2つのトンネル（`apps/web`のポート3000、`apps/api`のポート3001）を同時に公開する。ngrokの無料プランは「同時に張れるエージェント接続は1つ」という制限だが、1つの接続の中で複数のトンネルを張ることは設定ファイルを使えば可能なため、この方法で両方を同時公開できる。
 
-現状は`apps/web`のみを公開する想定で、`apps/api`（Socket.io）を含めた外部公開は未検証（TODO）。
+あらかじめ`docker compose up`（`apps/api`）と`pnpm --filter web dev`（`apps/web`）の両方を起動しておくこと。起動後にターミナルへ、`web`用・`api`用それぞれの`https://xxxx.ngrok-free.app`のようなURLが表示される。
+
+### ngrok経由でテストする際の追加設定
+
+ngrokのURLは`localhost`とは異なるオリジンになるため、以下の調整が必要になる（無料プランはURLが起動のたびに変わるため、都度この作業が必要）。
+
+- **`.env`の`WEB_URL`を、`web`用ngrok URLに変更する**: `apps/api`のCORS設定（`main.ts`、`game.gateway.ts`）はこの値を参照しているため、変更しないと`apps/web`からの接続がCORSエラーになる。変更後は`docker compose restart api`で反映する。
+- **GitHub/GoogleのOAuthアプリ設定のredirect URIを、`api`用ngrok URLに更新する**: ホストがngrok経由でログインを試す場合のみ必要（参加者はOAuthを使わないため不要）。
+- **`apps/web`側のSocket.io接続先URL**: 参加者側画面（Issue 8）を実装する際、接続先を`localhost:3001`に決め打ちせず、環境変数（例: `NEXT_PUBLIC_API_URL`）から読み込むようにしておくと、ngrok URLへの切り替えが容易になる。
 
 ## テスト用データベースの準備
 
