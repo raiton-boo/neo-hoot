@@ -1,4 +1,4 @@
-CREATE TYPE "public"."game_session_status" AS ENUM('waiting', 'in_progress', 'finished');--> statement-breakpoint
+CREATE TYPE "public"."game_session_status" AS ENUM('waiting', 'in_progress', 'finished', 'expired');--> statement-breakpoint
 CREATE TYPE "public"."question_type" AS ENUM('choice', 'true_false', 'survey');--> statement-breakpoint
 CREATE TABLE "answer" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
@@ -19,6 +19,15 @@ CREATE TABLE "choice" (
 	"order" integer NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "game_result" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"game_session_id" uuid NOT NULL,
+	"participant_stats" jsonb NOT NULL,
+	"question_stats" jsonb NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	CONSTRAINT "game_result_game_session_id_unique" UNIQUE("game_session_id")
+);
+--> statement-breakpoint
 CREATE TABLE "game_session" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"quiz_id" uuid NOT NULL,
@@ -26,6 +35,14 @@ CREATE TABLE "game_session" (
 	"status" "game_session_status" NOT NULL,
 	"started_at" timestamp,
 	"finished_at" timestamp
+);
+--> statement-breakpoint
+CREATE TABLE "oauth_identity" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"user_id" uuid NOT NULL,
+	"provider" varchar(50) NOT NULL,
+	"oauth_id" varchar(255) NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "participant" (
@@ -59,8 +76,6 @@ CREATE TABLE "user" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"email" varchar(255) NOT NULL,
 	"name" varchar(255) NOT NULL,
-	"oauth_provider" varchar(50) NOT NULL,
-	"oauth_id" varchar(255) NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	CONSTRAINT "user_email_unique" UNIQUE("email")
 );
@@ -70,11 +85,13 @@ ALTER TABLE "answer" ADD CONSTRAINT "answer_participant_id_participant_id_fk" FO
 ALTER TABLE "answer" ADD CONSTRAINT "answer_question_id_question_id_fk" FOREIGN KEY ("question_id") REFERENCES "public"."question"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "answer" ADD CONSTRAINT "answer_choice_id_choice_id_fk" FOREIGN KEY ("choice_id") REFERENCES "public"."choice"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "choice" ADD CONSTRAINT "choice_question_id_question_id_fk" FOREIGN KEY ("question_id") REFERENCES "public"."question"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "game_result" ADD CONSTRAINT "game_result_game_session_id_game_session_id_fk" FOREIGN KEY ("game_session_id") REFERENCES "public"."game_session"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "game_session" ADD CONSTRAINT "game_session_quiz_id_quiz_id_fk" FOREIGN KEY ("quiz_id") REFERENCES "public"."quiz"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "oauth_identity" ADD CONSTRAINT "oauth_identity_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "participant" ADD CONSTRAINT "participant_game_session_id_game_session_id_fk" FOREIGN KEY ("game_session_id") REFERENCES "public"."game_session"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "question" ADD CONSTRAINT "question_quiz_id_quiz_id_fk" FOREIGN KEY ("quiz_id") REFERENCES "public"."quiz"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "quiz" ADD CONSTRAINT "quiz_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 CREATE UNIQUE INDEX "answer_participant_question_idx" ON "answer" USING btree ("participant_id","question_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "game_session_room_code_active_idx" ON "game_session" USING btree ("room_code") WHERE "game_session"."status" IN ('waiting', 'in_progress');--> statement-breakpoint
-CREATE UNIQUE INDEX "participant_game_session_nickname_idx" ON "participant" USING btree ("game_session_id","nickname");--> statement-breakpoint
-CREATE UNIQUE INDEX "user_oauth_provider_oauth_id_idx" ON "user" USING btree ("oauth_provider","oauth_id");
+CREATE UNIQUE INDEX "oauth_identity_provider_oauth_id_idx" ON "oauth_identity" USING btree ("provider","oauth_id");--> statement-breakpoint
+CREATE UNIQUE INDEX "participant_game_session_nickname_idx" ON "participant" USING btree ("game_session_id","nickname");

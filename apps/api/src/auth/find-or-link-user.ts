@@ -1,4 +1,4 @@
-import { db as DbInstance, user } from '@neo-hoot/db';
+import { db as DbInstance, oauthIdentity, user } from '@neo-hoot/db';
 
 import { and, eq } from 'drizzle-orm';
 
@@ -13,18 +13,22 @@ export async function findOrLinkUser(
   db: typeof DbInstance,
   profile: OAuthProfile,
 ) {
-  const [existingByProvider] = await db
+  const [existingIdentity] = await db
     .select()
-    .from(user)
+    .from(oauthIdentity)
     .where(
       and(
-        eq(user.oauthProvider, profile.provider),
-        eq(user.oauthId, profile.oauthId),
+        eq(oauthIdentity.provider, profile.provider),
+        eq(oauthIdentity.oauthId, profile.oauthId),
       ),
     );
 
-  if (existingByProvider) {
-    return existingByProvider;
+  if (existingIdentity) {
+    const [existingUser] = await db
+      .select()
+      .from(user)
+      .where(eq(user.id, existingIdentity.userId));
+    return existingUser;
   }
 
   const [existingByEmail] = await db
@@ -33,22 +37,33 @@ export async function findOrLinkUser(
     .where(eq(user.email, profile.email));
 
   if (existingByEmail) {
-    const [linkedUser] = await db
-      .update(user)
-      .set({ oauthProvider: profile.provider, oauthId: profile.oauthId })
-      .where(eq(user.id, existingByEmail.id))
-      .returning();
-    return linkedUser;
+    await db.insert(oauthIdentity).values({
+      userId: existingByEmail.id,
+      provider: profile.provider,
+      oauthId: profile.oauthId,
+    });
+    return existingByEmail;
   }
 
-  const [newUser] = await db
-    .insert(user)
-    .values({
-      email: profile.email,
-      name: profile.name,
-      oauthProvider: profile.provider,
+  return db.transaction(async (tx) => {
+    const [newUser] = await tx
+      .insert(user)
+      .values({
+        email: profile.email,
+        name: profile.name,
+      })
+      .returning();
+
+    if (!newUser) {
+      throw new Error('ユーザーの作成に失敗しました');
+    }
+
+    await tx.insert(oauthIdentity).values({
+      userId: newUser.id,
+      provider: profile.provider,
       oauthId: profile.oauthId,
-    })
-    .returning();
-  return newUser;
+    });
+
+    return newUser;
+  });
 }

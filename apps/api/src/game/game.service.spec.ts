@@ -22,8 +22,6 @@ describe('GameService', () => {
       .values({
         email: 'game-service-test@example.com',
         name: 'Test User',
-        oauthProvider: 'test',
-        oauthId: 'game-service-test',
       })
       .returning();
 

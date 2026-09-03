@@ -35,8 +35,6 @@ describe('QuizService', () => {
       .values({
         email: 'quiz-service-test@example.com',
         name: 'Test User',
-        oauthProvider: 'test',
-        oauthId: 'quiz-service-test',
       })
       .returning();
 
