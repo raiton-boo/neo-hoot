@@ -99,7 +99,11 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       if (!nextQuestion) {
         this.gameStateService.clearTimer(dto.roomCode);
-        this.server.to(dto.roomCode).emit('all-questions-finished');
+        await this.gameService.finishGame(dto.roomCode);
+        const finalRanking = await this.gameService.getTopRanking(dto.roomCode);
+        this.server
+          .to(dto.roomCode)
+          .emit('all-questions-finished', { finalRanking });
         return;
       }
 

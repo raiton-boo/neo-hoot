@@ -152,7 +152,7 @@ export class GameService {
       .groupBy(answer.choiceId);
   }
 
-  async getTopRanking(roomCode: string, limit: number) {
+  async getTopRanking(roomCode: string, limit?: number) {
     const [session] = await this.db
       .select({ id: gameSession.id })
       .from(gameSession)
@@ -164,7 +164,7 @@ export class GameService {
 
     const totalScore = sql<number>`coalesce(sum(${answer.score}), 0)::int`;
 
-    return this.db
+    const query = this.db
       .select({
         participantId: participant.id,
         nickname: participant.nickname,
@@ -174,8 +174,9 @@ export class GameService {
       .leftJoin(answer, eq(answer.participantId, participant.id))
       .where(eq(participant.gameSessionId, session.id))
       .groupBy(participant.id, participant.nickname)
-      .orderBy(desc(totalScore))
-      .limit(limit);
+      .orderBy(desc(totalScore));
+
+    return limit === undefined ? query : query.limit(limit);
   }
 
   async submitAnswer(params: {
@@ -260,6 +261,18 @@ export class GameService {
         and(
           eq(gameSession.roomCode, roomCode),
           eq(gameSession.status, 'waiting'),
+        ),
+      );
+  }
+
+  async finishGame(roomCode: string): Promise<void> {
+    await this.db
+      .update(gameSession)
+      .set({ status: 'finished', finishedAt: new Date() })
+      .where(
+        and(
+          eq(gameSession.roomCode, roomCode),
+          eq(gameSession.status, 'in_progress'),
         ),
       );
   }
