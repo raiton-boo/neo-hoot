@@ -13,6 +13,7 @@ export const gameSessionStatusEnum = pgEnum('game_session_status', [
   'waiting',
   'in_progress',
   'finished',
+  'expired',
 ]);
 
 export const gameSession = pgTable(
