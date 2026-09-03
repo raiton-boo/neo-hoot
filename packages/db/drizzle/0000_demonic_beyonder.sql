@@ -76,4 +76,5 @@ ALTER TABLE "question" ADD CONSTRAINT "question_quiz_id_quiz_id_fk" FOREIGN KEY 
 ALTER TABLE "quiz" ADD CONSTRAINT "quiz_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 CREATE UNIQUE INDEX "answer_participant_question_idx" ON "answer" USING btree ("participant_id","question_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "game_session_room_code_active_idx" ON "game_session" USING btree ("room_code") WHERE "game_session"."status" IN ('waiting', 'in_progress');--> statement-breakpoint
-CREATE UNIQUE INDEX "participant_game_session_nickname_idx" ON "participant" USING btree ("game_session_id","nickname");
+CREATE UNIQUE INDEX "participant_game_session_nickname_idx" ON "participant" USING btree ("game_session_id","nickname");--> statement-breakpoint
+CREATE UNIQUE INDEX "user_oauth_provider_oauth_id_idx" ON "user" USING btree ("oauth_provider","oauth_id");
