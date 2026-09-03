@@ -12,7 +12,7 @@ import { Server, Socket } from 'socket.io';
 
 import { CreateRoomDto } from './dto/create-room.dto.js';
 import { JoinRoomDto } from './dto/join-room.dto.js';
-import { NextQuestionDto } from './dto/next-question.dto.js';
+import { RoomCodeDto } from './dto/room-code.dto.js';
 import { SubmitAnswerDto } from './dto/submit-answer.dto.js';
 import { GameStateService } from './game-state/game-state.service.js';
 import { GameService } from './game.service.js';
@@ -84,7 +84,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('next-question')
   async handleNextQuestion(
     @ConnectedSocket() client: Socket,
-    @MessageBody() dto: NextQuestionDto,
+    @MessageBody() dto: RoomCodeDto,
   ): Promise<void> {
     try {
       await this.gameService.startQuizIfNeeded(dto.roomCode);
@@ -199,5 +199,48 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
           error instanceof Error ? error.message : '回答の送信に失敗しました',
       });
     }
+  }
+
+  @SubscribeMessage('pause-question')
+  handlePauseQuestion(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() dto: RoomCodeDto,
+  ): void {
+    const remainingMs = this.gameStateService.pauseQuestion(dto.roomCode);
+
+    if (remainingMs === null) {
+      client.emit('pause-question-error', {
+        message: '一時停止できる設問がありません',
+      });
+      return;
+    }
+
+    this.server.to(dto.roomCode).emit('question:paused', { remainingMs });
+  }
+
+  @SubscribeMessage('resume-question')
+  handleResumeQuestion(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() dto: RoomCodeDto,
+  ): void {
+    const active = this.gameStateService.getActiveQuestion(dto.roomCode);
+
+    if (!active || !active.isPaused || active.remainingMs === null) {
+      client.emit('resume-question-error', {
+        message: '再開できる設問がありません',
+      });
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      void this.revealAnswer(dto.roomCode, active.questionId);
+    }, active.remainingMs);
+
+    const remainigMs = this.gameStateService.resumeQuestion(
+      dto.roomCode,
+      timer,
+    );
+
+    this.server.to(dto.roomCode).emit('question:resumed', { remainigMs });
   }
 }
