@@ -134,10 +134,23 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     roomCode: string,
     questionId: string,
   ): Promise<void> {
-    this.gameStateService.expireActiveQuestion(roomCode);
+    const shouldReveal = this.gameStateService.expireActiveQuestion(roomCode);
+
+    if (!shouldReveal) {
+      return;
+    }
+
     const correctChoiceId =
       await this.gameService.getCorrectChoiceId(questionId);
-    this.server.to(roomCode).emit('question:timeup', { correctChoiceId });
+    const distribution =
+      await this.gameService.getAnswerDistribution(questionId);
+    const ranking = await this.gameService.getTopRanking(roomCode, 5);
+
+    this.server.to(roomCode).emit('question:timeup', {
+      correctChoiceId,
+      distribution,
+      ranking,
+    });
   }
 
   @SubscribeMessage('submit-answer')
@@ -163,7 +176,19 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         timeLimitSeconds: active.timeLimitSeconds,
       });
 
-      client.emit('answer-submitted', { score: result.score });
+      client.emit('answer-submitted', {
+        score: result.score,
+        isCorrect: result.isCorrect,
+      });
+
+      const allAnswered = await this.gameService.hasAllParticipantsAnswered(
+        dto.roomCode,
+        active.questionId,
+      );
+
+      if (allAnswered) {
+        await this.revealAnswer(dto.roomCode, active.questionId);
+      }
     } catch (error) {
       client.emit('submit-answer-error', {
         message:

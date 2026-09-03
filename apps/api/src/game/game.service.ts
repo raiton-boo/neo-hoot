@@ -14,7 +14,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import { and, asc, eq, inArray } from 'drizzle-orm';
+import { and, asc, count, desc, eq, inArray, sql } from 'drizzle-orm';
 import postgres from 'postgres';
 
 import { DATABASE_CONNECTION } from '../database/database.module.js';
@@ -110,6 +110,74 @@ export class GameService {
     return correctChoice?.id ?? null;
   }
 
+  async hasAllParticipantsAnswered(
+    roomCode: string,
+    questionId: string,
+  ): Promise<boolean> {
+    const [session] = await this.db
+      .select({ id: gameSession.id })
+      .from(gameSession)
+      .where(eq(gameSession.roomCode, roomCode));
+
+    if (!session) {
+      return false;
+    }
+
+    const [participantCount] = await this.db
+      .select({ value: count() })
+      .from(participant)
+      .where(eq(participant.gameSessionId, session.id));
+
+    const [answerCount] = await this.db
+      .select({ value: count() })
+      .from(answer)
+      .where(
+        and(
+          eq(answer.gameSessionId, session.id),
+          eq(answer.questionId, questionId),
+        ),
+      );
+
+    const totalParticipants = participantCount?.value ?? 0;
+    const totalAnswers = answerCount?.value ?? 0;
+
+    return totalParticipants > 0 && totalAnswers >= totalParticipants;
+  }
+
+  async getAnswerDistribution(questionId: string) {
+    return this.db
+      .select({ choiceId: answer.choiceId, count: count() })
+      .from(answer)
+      .where(eq(answer.questionId, questionId))
+      .groupBy(answer.choiceId);
+  }
+
+  async getTopRanking(roomCode: string, limit: number) {
+    const [session] = await this.db
+      .select({ id: gameSession.id })
+      .from(gameSession)
+      .where(eq(gameSession.roomCode, roomCode));
+
+    if (!session) {
+      return [];
+    }
+
+    const totalScore = sql<number>`coalesce(sum(${answer.score}), 0)::int`;
+
+    return this.db
+      .select({
+        participantId: participant.id,
+        nickname: participant.nickname,
+        totalScore,
+      })
+      .from(participant)
+      .leftJoin(answer, eq(answer.participantId, participant.id))
+      .where(eq(participant.gameSessionId, session.id))
+      .groupBy(participant.id, participant.nickname)
+      .orderBy(desc(totalScore))
+      .limit(limit);
+  }
+
   async submitAnswer(params: {
     roomCode: string;
     participantId: string;
@@ -159,7 +227,7 @@ export class GameService {
         throw new Error('回答の保存に失敗しました');
       }
 
-      return newAnswer;
+      return { ...newAnswer, isCorrect: selectedChoice.isCorrect };
     } catch (error) {
       if (this.isUniqueViolation(error)) {
         throw new ConflictException('既に回答済みです');

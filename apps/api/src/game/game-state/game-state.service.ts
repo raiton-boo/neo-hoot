@@ -37,11 +37,13 @@ export class GameStateService {
     }
   }
 
-  expireActiveQuestion(roomCode: string): void {
+  expireActiveQuestion(roomCode: string): boolean {
     const existing = this.activeQuestions.get(roomCode);
-    if (existing) {
-      clearTimeout(existing.timer);
-      existing.isExpired = true;
+    if (!existing || existing.isExpired) {
+      return false;
     }
+    clearTimeout(existing.timer);
+    existing.isExpired = true;
+    return true;
   }
 }
