@@ -54,7 +54,7 @@ cp .env.example .env
 docker compose up
 ```
 
-`postgres` / `redis` / `api`（NestJS）の3つのコンテナが起動する。`api`は`apps/api/nodemon.json`によりホットリロードされる（コード変更が即座に反映される）。
+`postgres` / `redis` / `api`（NestJS）の3つのコンテナが起動する。`api`は`nest start --watch --builder swc`によりホットリロードされる（コード変更が即座に反映される）。
 
 ### 5. フロントエンドの起動
 

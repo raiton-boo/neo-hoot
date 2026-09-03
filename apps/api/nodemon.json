@@ -1,7 +1,0 @@
-{
-  "watch": ["src"],
-  "ext": "ts,js,json",
-  "legacyWatch": true,
-  "delay": "1000",
-  "exec": "nest start"
-}
