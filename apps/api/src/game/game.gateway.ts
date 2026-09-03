@@ -243,4 +243,76 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     this.server.to(dto.roomCode).emit('question:resumed', { remainigMs });
   }
+
+  @SubscribeMessage('skip-question')
+  async handleSkipQuestion(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() dto: RoomCodeDto,
+  ): Promise<void> {
+    const active = this.gameStateService.getActiveQuestion(dto.roomCode);
+
+    if (!active) {
+      client.emit('skip-question-error', {
+        message: 'スキップできる設問がありません',
+      });
+      return;
+    }
+
+    await this.revealAnswer(dto.roomCode, active.questionId);
+  }
+
+  @SubscribeMessage('abort-game')
+  async handleAbortGame(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() dto: RoomCodeDto,
+  ): Promise<void> {
+    try {
+      this.gameStateService.clearTimer(dto.roomCode);
+      await this.gameService.finishGame(dto.roomCode);
+      const finalRanking = await this.gameService.getTopRanking(dto.roomCode);
+      this.server.to(dto.roomCode).emit('game-aborted', { finalRanking });
+    } catch (error) {
+      client.emit('abort-game-error', {
+        message: error instanceof Error ? error.message : '中断に失敗しました',
+      });
+    }
+  }
+
+  @SubscribeMessage('rejoin-host')
+  async handleRejoinHost(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() dto: RoomCodeDto,
+  ): Promise<void> {
+    try {
+      await client.join(dto.roomCode);
+
+      const active = this.gameStateService.getActiveQuestion(dto.roomCode);
+
+      if (!active) {
+        client.emit('rejoin-host-success', { status: 'waiting' });
+        return;
+      }
+
+      const currentQuestion = await this.gameService.getQuestionByOrder(
+        dto.roomCode,
+        active.order,
+      );
+
+      const remainingMs = active.isPaused
+        ? (active.remainingMs ?? 0)
+        : active.timeLimitSeconds * 1000 - (Date.now() - active.startedAt);
+
+      client.emit('rejoin-host-success', {
+        status: active.isExpired ? 'revealed' : 'in-question',
+        question: currentQuestion,
+        remainingMs,
+        isPaused: active.isPaused,
+      });
+    } catch (error) {
+      client.emit('rejoin-host-error', {
+        message:
+          error instanceof Error ? error.message : '再接続に失敗しました',
+      });
+    }
+  }
 }
