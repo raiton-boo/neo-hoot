@@ -1,5 +1,5 @@
 {
-  "id": "9ac3f1da-60dc-4266-a69d-88164a0a16b8",
+  "id": "7fac7814-2c76-40f6-a4ef-9c2323d41be7",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -542,7 +542,29 @@
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "user_oauth_provider_oauth_id_idx": {
+          "name": "user_oauth_provider_oauth_id_idx",
+          "columns": [
+            {
+              "expression": "oauth_provider",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "oauth_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
