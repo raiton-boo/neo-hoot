@@ -19,6 +19,42 @@ type NewActiveQuestion = Pick<
 @Injectable()
 export class GameStateService {
   private readonly activeQuestions = new Map<string, ActiveQuestion>();
+  private readonly disconnectedParticipants = new Map<string, Set<string>>();
+  private readonly socketParticipants = new Map<
+    string,
+    { roomCode: string; participantId: string }
+  >();
+
+  registerParticipantSocket(
+    socketId: string,
+    roomCode: string,
+    participantId: string,
+  ): void {
+    this.socketParticipants.set(socketId, { roomCode, participantId });
+  }
+
+  handleParticipantDisconnect(
+    socketId: string,
+  ): { roomCode: string; participantId: string } | undefined {
+    const entry = this.socketParticipants.get(socketId);
+
+    if (!entry) {
+      return undefined;
+    }
+
+    this.socketParticipants.delete(socketId);
+
+    const disconnected =
+      this.disconnectedParticipants.get(entry.roomCode) ?? new Set<string>();
+    disconnected.add(entry.participantId);
+    this.disconnectedParticipants.set(entry.roomCode, disconnected);
+
+    return entry;
+  }
+
+  getDisconnectedCount(roomCode: string): number {
+    return this.disconnectedParticipants.get(roomCode)?.size ?? 0;
+  }
 
   setActiveQuestion(roomCode: string, state: NewActiveQuestion): void {
     this.clearTimer(roomCode);

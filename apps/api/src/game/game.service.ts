@@ -113,6 +113,7 @@ export class GameService {
   async hasAllParticipantsAnswered(
     roomCode: string,
     questionId: string,
+    excludedParticipantCount = 0,
   ): Promise<boolean> {
     const [session] = await this.db
       .select({ id: gameSession.id })
@@ -138,7 +139,8 @@ export class GameService {
         ),
       );
 
-    const totalParticipants = participantCount?.value ?? 0;
+    const totalParticipants =
+      (participantCount?.value ?? 0) - excludedParticipantCount;
     const totalAnswers = answerCount?.value ?? 0;
 
     return totalParticipants > 0 && totalAnswers >= totalParticipants;

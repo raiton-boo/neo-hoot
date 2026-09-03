@@ -36,8 +36,24 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     console.log(`Client connected: ${client.id}`);
   }
 
-  handleDisconnect(client: Socket) {
+  handleDisconnect(client: Socket): void {
     console.log(`Client disconnected: ${client.id}`);
+
+    const entry = this.gameStateService.handleParticipantDisconnect(client.id);
+
+    if (!entry) {
+      return;
+    }
+
+    this.server.to(entry.roomCode).emit('participant:disconnected', {
+      participantId: entry.participantId,
+    });
+
+    const active = this.gameStateService.getActiveQuestion(entry.roomCode);
+
+    if (active && this.gameStateService.isAcceptingAnswers(entry.roomCode)) {
+      void this.checkAllAnswered(entry.roomCode, active.questionId);
+    }
   }
 
   @SubscribeMessage('createRoom')
@@ -70,10 +86,11 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         dto.nickname,
       );
       await client.join(dto.roomCode);
-      this.server.to(dto.roomCode).emit('participant:joined', {
-        id: newParticipant.id,
-        nickname: newParticipant.nickname,
-      });
+      this.gameStateService.registerParticipantSocket(
+        client.id,
+        dto.roomCode,
+        newParticipant.id,
+      );
     } catch (error) {
       client.emit('join-room-error', {
         message: error instanceof Error ? error.message : '参加に失敗しました',
@@ -157,6 +174,23 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
   }
 
+  private async checkAllAnswered(
+    roomCode: string,
+    questionId: string,
+  ): Promise<void> {
+    const disconnectedCount =
+      this.gameStateService.getDisconnectedCount(roomCode);
+    const allAnswered = await this.gameService.hasAllParticipantsAnswered(
+      roomCode,
+      questionId,
+      disconnectedCount,
+    );
+
+    if (allAnswered) {
+      await this.revealAnswer(roomCode, questionId);
+    }
+  }
+
   @SubscribeMessage('submit-answer')
   async handleSubmitAnswer(
     @ConnectedSocket() client: Socket,
@@ -185,14 +219,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         isCorrect: result.isCorrect,
       });
 
-      const allAnswered = await this.gameService.hasAllParticipantsAnswered(
-        dto.roomCode,
-        active.questionId,
-      );
-
-      if (allAnswered) {
-        await this.revealAnswer(dto.roomCode, active.questionId);
-      }
+      await this.checkAllAnswered(dto.roomCode, active.questionId);
     } catch (error) {
       client.emit('submit-answer-error', {
         message:
