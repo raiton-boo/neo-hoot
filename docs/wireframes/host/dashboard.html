@@ -128,18 +128,35 @@
     <div class="host-screen">
       <div class="app-header">
         <a class="logo" href="dashboard.html">neo-hoot</a>
-        <button class="user-menu">
-          <span class="avatar">田</span>
-          <span>たなか さん</span>
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="3"
-          >
-            <path d="M6 9l6 6 6-6" />
-          </svg>
-        </button>
+        <div class="user-menu-wrapper">
+          <button class="user-menu">
+            <span class="avatar">田</span>
+            <span>たなか さん</span>
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="3"
+            >
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+          </button>
+
+          <!-- 開いた状態のワイヤーフレーム表示(実装ではJSで開閉を制御する) -->
+          <div class="user-menu-overlay"></div>
+          <div class="user-menu-panel">
+            <div class="user-menu-handle"></div>
+            <div class="user-menu-header">
+              <span class="avatar">田</span>
+              <div>
+                <div class="user-menu-name">たなか さん</div>
+                <div class="user-menu-email">tanaka@example.com</div>
+              </div>
+            </div>
+            <button class="user-menu-item">ログアウト</button>
+            <button class="user-menu-item danger">アカウント削除</button>
+          </div>
+        </div>
       </div>
 
       <div class="page-title-row">
@@ -211,6 +228,27 @@
     </div>
 
     <script>
+      // ユーザーメニューの開閉
+      document.querySelectorAll('.user-menu').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          btn.closest('.user-menu-wrapper').classList.toggle('open');
+        });
+      });
+
+      document.querySelectorAll('.user-menu-overlay').forEach((overlay) => {
+        overlay.addEventListener('click', () => {
+          overlay.closest('.user-menu-wrapper').classList.remove('open');
+        });
+      });
+
+      document.addEventListener('click', (event) => {
+        if (!event.target.closest('.user-menu-wrapper')) {
+          document
+            .querySelectorAll('.user-menu-wrapper.open')
+            .forEach((wrapper) => wrapper.classList.remove('open'));
+        }
+      });
+
       // カードごとの「⋮」メニューの開閉
       document.querySelectorAll('.card-menu-btn').forEach((btn) => {
         btn.addEventListener('click', () => {
