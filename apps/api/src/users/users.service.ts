@@ -8,7 +8,7 @@ import {
   quiz,
   user,
 } from '@neo-hoot/db';
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 
 import { eq, inArray } from 'drizzle-orm';
 
@@ -19,6 +19,19 @@ export class UsersService {
   constructor(
     @Inject(DATABASE_CONNECTION) private readonly db: typeof DbInstance,
   ) {}
+
+  async getCurrentUser(userId: string) {
+    const [foundUser] = await this.db
+      .select({ id: user.id, email: user.email, name: user.name })
+      .from(user)
+      .where(eq(user.id, userId));
+
+    if (!foundUser) {
+      throw new NotFoundException('ユーザーが見つかりません');
+    }
+
+    return foundUser;
+  }
 
   async deleteAccount(userId: string) {
     await this.db.transaction(async (tx) => {
