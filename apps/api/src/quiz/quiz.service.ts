@@ -13,7 +13,15 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import { and, count, desc, eq, inArray, isNotNull, isNull } from 'drizzle-orm';
+import {
+  and,
+  desc,
+  eq,
+  inArray,
+  isNotNull,
+  isNull,
+  sql,
+} from 'drizzle-orm';
 import { DATABASE_CONNECTION } from '../database/database.module.js';
 import { CreateQuizDto } from './dto/create-quiz.dto.js';
 import { UpdateQuizDto } from './dto/update-quiz.dto.js';
@@ -34,10 +42,13 @@ export class QuizService {
         createdAt: quiz.createdAt,
         updatedAt: quiz.updatedAt,
         archivedAt: quiz.archivedAt,
-        sessionCount: count(gameSession.id),
+        sessionCount: sql<number>`count(distinct ${gameSession.id})::int`,
+        questionCount: sql<number>`count(distinct ${question.id})::int`,
+        questionTypes: sql<string[]>`array_agg(distinct ${question.type})`,
       })
       .from(quiz)
       .leftJoin(gameSession, eq(gameSession.quizId, quiz.id))
+      .leftJoin(question, eq(question.quizId, quiz.id))
       .where(and(eq(quiz.userId, userId), isNull(quiz.archivedAt)))
       .groupBy(quiz.id)
       .orderBy(desc(quiz.updatedAt));
@@ -53,10 +64,13 @@ export class QuizService {
         createdAt: quiz.createdAt,
         updatedAt: quiz.updatedAt,
         archivedAt: quiz.archivedAt,
-        sessionCount: count(gameSession.id),
+        sessionCount: sql<number>`count(distinct ${gameSession.id})::int`,
+        questionCount: sql<number>`count(distinct ${question.id})::int`,
+        questionTypes: sql<string[]>`array_agg(distinct ${question.type})`,
       })
       .from(quiz)
       .leftJoin(gameSession, eq(gameSession.quizId, quiz.id))
+      .leftJoin(question, eq(question.quizId, quiz.id))
       .where(and(eq(quiz.userId, userId), isNotNull(quiz.archivedAt)))
       .groupBy(quiz.id)
       .orderBy(desc(quiz.archivedAt));
