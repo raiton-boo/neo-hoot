@@ -1,4 +1,10 @@
-import { choice, db as DbInstance, question, quiz } from '@neo-hoot/db';
+import {
+  choice,
+  db as DbInstance,
+  gameSession,
+  question,
+  quiz,
+} from '@neo-hoot/db';
 import {
   ConflictException,
   ForbiddenException,
@@ -7,7 +13,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import { and, desc, eq, inArray, isNotNull, isNull } from 'drizzle-orm';
+import { and, count, desc, eq, inArray, isNotNull, isNull } from 'drizzle-orm';
 import { DATABASE_CONNECTION } from '../database/database.module.js';
 import { CreateQuizDto } from './dto/create-quiz.dto.js';
 import { UpdateQuizDto } from './dto/update-quiz.dto.js';
@@ -20,17 +26,39 @@ export class QuizService {
 
   async getQuizzes(userId: string) {
     return this.db
-      .select()
+      .select({
+        id: quiz.id,
+        userId: quiz.userId,
+        title: quiz.title,
+        description: quiz.description,
+        createdAt: quiz.createdAt,
+        updatedAt: quiz.updatedAt,
+        archivedAt: quiz.archivedAt,
+        sessionCount: count(gameSession.id),
+      })
       .from(quiz)
+      .leftJoin(gameSession, eq(gameSession.quizId, quiz.id))
       .where(and(eq(quiz.userId, userId), isNull(quiz.archivedAt)))
+      .groupBy(quiz.id)
       .orderBy(desc(quiz.updatedAt));
   }
 
   async getArchivedQuizzes(userId: string) {
     return this.db
-      .select()
+      .select({
+        id: quiz.id,
+        userId: quiz.userId,
+        title: quiz.title,
+        description: quiz.description,
+        createdAt: quiz.createdAt,
+        updatedAt: quiz.updatedAt,
+        archivedAt: quiz.archivedAt,
+        sessionCount: count(gameSession.id),
+      })
       .from(quiz)
+      .leftJoin(gameSession, eq(gameSession.quizId, quiz.id))
       .where(and(eq(quiz.userId, userId), isNotNull(quiz.archivedAt)))
+      .groupBy(quiz.id)
       .orderBy(desc(quiz.archivedAt));
   }
 

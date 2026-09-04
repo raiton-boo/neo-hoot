@@ -84,6 +84,18 @@ describe('QuizService', () => {
     expect(archivedQuizzes.find((q) => q.id === created.id)).toBeDefined();
   });
 
+  it('getQuizzes: 開催回数(sessionCount)を正しく数える', async () => {
+    const created = await service.createQuiz(userId, validQuizInput);
+    await testDb.insert(gameSession).values([
+      { quizId: created.id, roomCode: '1111', status: 'finished' },
+      { quizId: created.id, roomCode: '2222', status: 'finished' },
+    ]);
+
+    const quizzes = await service.getQuizzes(userId);
+    const found = quizzes.find((q) => q.id === created.id);
+    expect(found?.sessionCount).toBe(2);
+  });
+
   it('getQuizById: 他人のクイズにはアクセスできない', async () => {
     const created = await service.createQuiz(userId, validQuizInput);
 
